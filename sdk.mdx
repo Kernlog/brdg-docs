@@ -1,0 +1,96 @@
+---
+title: TypeScript SDK
+description: A typed client for every endpoint. No runtime dependencies.
+---
+
+```bash
+npm install @bridg/sdk
+```
+
+Node 18+ or any runtime with a global `fetch`. Types are generated from the API's OpenAPI document, so requests and responses match the [API reference](/api-reference/overview) exactly.
+
+## Quote, build, sign, submit, track
+
+```ts
+import { createClient } from '@bridg/sdk';
+
+const bridg = createClient();
+
+// Markets
+const { routes } = await bridg.getRoutes({ fromChain: 'base', toChain: 'solana' });
+
+// Quote: 100 USDC on Base to USDC on Solana
+const quote = await bridg.getQuote({
+  fromChain: 'base',
+  toChain: 'solana',
+  fromToken: 'USDC',
+  toToken: 'USDC',
+  amountAtomic: '100000000',
+  sender: '0xYourEvmWallet',
+  recipient: 'YourSolanaWallet',
+});
+quote.best; // the row Bridg builds by default
+quote.bestByTime; // quoteId of the fastest executable row
+quote.quotes; // every venue that answered, best first
+
+// Build the unsigned steps. Pass quoteId to build another row.
+const build = await bridg.buildTransfer({ decisionId: quote.decisionId });
+
+// Sign build.steps in order with the user's wallet, then report the hash
+await bridg.submitTransfer(build.transferId, { txHash: '0x…', step: 'main' });
+
+// Track until terminal
+const transfer = await bridg.waitForTransfer(build.transferId, {
+  onUpdate: (t) => console.log(t.status),
+});
+```
+
+## Configuration
+
+```ts
+createClient({
+  baseUrl: 'https://api.bridg.now/v1', // default
+  token: 'session token', // only for your own orders
+  headers: { 'x-integrator': 'my-app' },
+  fetch: customFetch,
+});
+```
+
+## Sessions
+
+Only `listOrders`, `getHistory`, `getProfile` and wallet management need one.
+
+```ts
+const { message } = await bridg.requestNonce({ address, chainFamily: 'evm' });
+const signature = await wallet.signMessage({ message }); // sign the string verbatim
+await bridg.verifySignature({ chainFamily: 'evm', message, signature }); // token kept on the client
+const { items } = await bridg.listOrders({ sender: address });
+```
+
+## Errors
+
+Every API error is a `BridgError` carrying the API's `code`, the HTTP `status`, `details` and, on `429`, `retryAfterMs`. Codes are listed on [Errors](/reference/errors).
+
+```ts
+import { isBridgError } from '@bridg/sdk';
+
+try {
+  await bridg.buildTransfer({ decisionId });
+} catch (error) {
+  if (isBridgError(error) && error.code === 'quote_drifted') {
+    // re-quote and choose again
+  }
+}
+```
+
+## Methods
+
+| Group | Methods |
+| --- | --- |
+| Markets | `getSourceChains` `getRoutes` `getVenues` |
+| Quote and execute | `getQuote` `buildTransfer` `submitTransfer` `getTransfer` `waitForTransfer` `buildRedeem` `submitRedeem` |
+| Large orders | `acceptPlan` `startSplit` `nextSplitLeg` `getSplitGroup` |
+| Hyperliquid | `submitPermit` `submitSpotTransfer` |
+| Sessions and orders | `requestNonce` `verifySignature` `getSession` `logout` `listOrders` `getOrder` `getHistory` `setUsername` `nameWallet` `unlinkWallet` |
+| Realtime | `watchCorridor` `getConnectionToken` `getSubscriptionToken` |
+| Data | `getPrices` `getPriceHistory` `getBalance` `getPortfolio` `getStats` `getLeaderboard` `getProfile` `getHealth` |

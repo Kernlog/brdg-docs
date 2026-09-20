@@ -4,7 +4,7 @@ sidebarTitle: Quickstart
 description: Discover markets, quote a transfer, build the transaction and track it.
 ---
 
-Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic units (`100000000` is 100 USDC).
+Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic units (`100000000` is 100 USDC). Every call below is also one method on the [TypeScript SDK](/sdk).
 
 <Steps>
   <Step title="Discover markets">
@@ -19,6 +19,12 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
     const api = 'https://api.bridg.now/v1';
     const { chains } = await (await fetch(`${api}/bridge/source-chains`)).json();
     const { routes } = await (await fetch(`${api}/bridge/routes?fromChain=base&toChain=solana`)).json();
+    ```
+    ```typescript SDK
+    import { createClient } from '@bridg/sdk';
+    const bridg = createClient();
+    const { chains } = await bridg.getSourceChains();
+    const { routes } = await bridg.getRoutes({ fromChain: 'base', toChain: 'solana' });
     ```
     </CodeGroup>
 
@@ -67,6 +73,15 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
         recipient: '3BQtHR41iDPiu9skeSVzmBDpZKcKqEEDnMn6UkbAHvZz',
       }),
     })).json();
+    ```
+    ```typescript SDK
+    const quote = await bridg.getQuote({
+      fromChain: 'base', toChain: 'solana',
+      fromToken: 'USDC', toToken: 'USDC',
+      amountAtomic: '100000000',
+      sender: '0x58E602386DB134b1F9B1d6d390C11A2B7b486677',
+      recipient: '3BQtHR41iDPiu9skeSVzmBDpZKcKqEEDnMn6UkbAHvZz',
+    });
     ```
     </CodeGroup>
 
@@ -138,6 +153,9 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
       body: JSON.stringify({ decisionId: quote.decisionId }),
     })).json();
     ```
+    ```typescript SDK
+    const build = await bridg.buildTransfer({ decisionId: quote.decisionId });
+    ```
     </CodeGroup>
 
     ```json
@@ -176,15 +194,23 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
       -H 'content-type: application/json' \
       -d '{ "signedTransaction": "0x02f8b1…", "step": "main" }'
     ```
+    ```typescript SDK
+    await bridg.submitTransfer(build.transferId, { txHash: '0xabab…', step: 'main' });
+    ```
     </CodeGroup>
 
     The transaction is decoded and compared to the built steps. A mismatch is refused and nothing is broadcast.
   </Step>
 
   <Step title="Track">
-    ```bash
+    <CodeGroup>
+    ```bash curl
     curl https://api.bridg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281
     ```
+    ```typescript SDK
+    const transfer = await bridg.waitForTransfer(build.transferId, { onUpdate: (t) => console.log(t.status) });
+    ```
+    </CodeGroup>
 
     `status` moves `PENDING_SIGNATURE` → `SUBMITTED` → `PENDING` → `COMPLETED`. Terminal states are `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` and `ABANDONED`. Poll, or subscribe to the [realtime channel](/api-reference/realtime/watch).
   </Step>

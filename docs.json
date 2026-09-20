@@ -45,7 +45,7 @@
       {
         "tab": "Documentation",
         "groups": [
-          { "group": "Get started", "pages": ["index", "how-it-works", "quickstart"] },
+          { "group": "Get started", "pages": ["index", "how-it-works", "quickstart", "sdk"] },
           {
             "group": "Concepts",
             "pages": [
