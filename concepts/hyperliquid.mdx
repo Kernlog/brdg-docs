@@ -1,0 +1,31 @@
+---
+title: Hyperliquid
+description: Bridge from any chain straight into a Hyperliquid perps or spot balance, with one signature.
+---
+
+HyperCore, Hyperliquid's own ledger, is a destination chain like any other: `toChain: "hypercore"`. Pick which balance the USDC lands in and sign once on the source chain.
+
+## Two balances
+
+| `toToken` | Lands in |
+| --- | --- |
+| `USDC (perps)` | Trading collateral. The usual target for a deposit. |
+| `USDC (spot)` | The spot wallet. |
+
+Moving between the two afterwards is an action you take on Hyperliquid itself.
+
+## Two routes, ranked together
+
+- **Native.** Mayan, Circle CCTP, LI.FI and Symbiosis credit a Hyperliquid account directly from the source chain. Mayan and CCTP can land on either balance; the others land on perps.
+- **Via Arbitrum.** Where no native venue serves the route, or a plain bridge to Arbitrum is cheaper, the bridge delivers USDC to Bridg's relayer wallet and the relayer credits the account. Nothing to sign or claim after the source chain; the transfer's `postStep` reports the credit. The relayer's cost is a flat amount already off the quoted figure.
+
+Neither route needs a signature from the receiving account, so the recipient can be any Hyperliquid address, including one you do not control.
+
+## Minimums
+
+| Account | Minimum delivered |
+| --- | --- |
+| Never seen by Hyperliquid | 5.10 USDC (activation is taken from the first credit) |
+| Any history | 1 USDC |
+
+A row that would not clear the minimum is listed under `rejected` with `code: "below_min"` and the figure it would have delivered. `POST /bridge/build` re-checks the same floor.

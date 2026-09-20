@@ -1,0 +1,198 @@
+---
+title: Quickstart
+description: Discover markets, quote a transfer, build the transaction and track it.
+---
+
+Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic units (`100000000` is 100 USDC).
+
+<Steps>
+  <Step title="Discover markets">
+    Chains a transfer can start from, and which venues serve a corridor:
+
+    <CodeGroup>
+    ```bash curl
+    curl https://api.bridg.now/v1/bridge/source-chains
+    curl "https://api.bridg.now/v1/bridge/routes?fromChain=base&toChain=solana"
+    ```
+    ```javascript JavaScript
+    const api = 'https://api.bridg.now/v1';
+    const { chains } = await (await fetch(`${api}/bridge/source-chains`)).json();
+    const { routes } = await (await fetch(`${api}/bridge/routes?fromChain=base&toChain=solana`)).json();
+    ```
+    </CodeGroup>
+
+    ```json routes
+    {
+      "fromChain": "base",
+      "toChain": "solana",
+      "routes": [
+        { "venue": "across", "enabled": true, "tokenSymbols": ["ETH", "SPX", "USDC", "USDT", "cbBTC"], "tokenSymbolCount": 5 },
+        { "venue": "mayan", "enabled": true, "tokenSymbols": ["ARB", "EURC", "SOL", "USDC", "USDT", "WETH"], "tokenSymbolCount": 13 },
+        { "venue": "relay", "enabled": true, "tokenSymbols": ["SOL", "USDC", "USDT"], "tokenSymbolCount": 3 }
+      ],
+      "generatedAt": 1789929187639
+    }
+    ```
+
+    `tokenSymbols` is capped; `tokenSymbolCount` is exact. Chain keys are listed on [Chains](/reference/chains), venues on [Venues](/reference/venues).
+  </Step>
+
+  <Step title="Get a quote">
+    100 USDC on Base to USDC on Solana:
+
+    <CodeGroup>
+    ```bash curl
+    curl https://api.bridg.now/v1/bridge/quote \
+      -H 'content-type: application/json' \
+      -d '{
+        "fromChain": "base",
+        "toChain": "solana",
+        "fromToken": "USDC",
+        "toToken": "USDC",
+        "amountAtomic": "100000000",
+        "sender": "0x58E602386DB134b1F9B1d6d390C11A2B7b486677",
+        "recipient": "3BQtHR41iDPiu9skeSVzmBDpZKcKqEEDnMn6UkbAHvZz"
+      }'
+    ```
+    ```javascript JavaScript
+    const quote = await (await fetch(`${api}/bridge/quote`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        fromChain: 'base', toChain: 'solana',
+        fromToken: 'USDC', toToken: 'USDC',
+        amountAtomic: '100000000',
+        sender: '0x58E602386DB134b1F9B1d6d390C11A2B7b486677',
+        recipient: '3BQtHR41iDPiu9skeSVzmBDpZKcKqEEDnMn6UkbAHvZz',
+      }),
+    })).json();
+    ```
+    </CodeGroup>
+
+    The response carries the winner, the two named picks, and every venue that answered:
+
+    ```json
+    {
+      "decisionId": "fb0798dc-97d2-41f2-8786-ace0b1c40722",
+      "best": {
+        "venue": "across",
+        "quoteId": "j9rjf-1789929523328-a31b7f5929b9",
+        "amountInAtomic": "99950000",
+        "amountOutAtomic": "99937006",
+        "minAmountOutAtomic": "99937006",
+        "estimatedSeconds": 8,
+        "feeBps": 5,
+        "feeAmountAtomic": "50000",
+        "tierSavedBps": 55,
+        "executable": true,
+        "eligibility": "ok",
+        "expiresAt": 1789929585541
+      },
+      "bestByPrice": "j9rjf-1789929523328-a31b7f5929b9",
+      "bestByTime": "0x1789929524ca26112477ff817da2653de7c5295b92f658dc8ba32b5b867126f7",
+      "quotes": [
+        { "venue": "across",       "quoteId": "j9rjf-…", "amountOutAtomic": "99937006", "estimatedSeconds": 8,    "executable": true },
+        { "venue": "near-intents", "quoteId": "…",       "amountOutAtomic": "99934258", "estimatedSeconds": 32,   "executable": true },
+        { "venue": "mayan",        "quoteId": "…",       "amountOutAtomic": "99897862", "estimatedSeconds": 3,    "executable": true },
+        { "venue": "relay",        "quoteId": "0x1789…", "amountOutAtomic": "99895873", "estimatedSeconds": 1,    "executable": true },
+        { "venue": "allbridge-core", "quoteId": "…",     "amountOutAtomic": "99850050", "estimatedSeconds": 1380, "executable": true },
+        { "venue": "cctp",         "quoteId": "…",       "amountOutAtomic": "99781902", "estimatedSeconds": 30,   "executable": true }
+      ],
+      "rejected": [
+        { "venue": "sideshift", "code": "invalid_input", "message": "SideShift requires the end-user IP" },
+        { "venue": "owlto", "code": "above_max", "message": "amount 100000000 is above the venue maximum 99000000" }
+      ],
+      "fees": {
+        "platform": { "bps": 5, "amountAtomic": "50000", "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", "tierSavedBps": 55 },
+        "referral": null
+      },
+      "expiresAt": 1789929585541
+    }
+    ```
+
+    | Field | Meaning |
+    | --- | --- |
+    | `best` | The row Bridg builds by default: highest net output among rows a wallet can sign. |
+    | `bestByPrice` | `best`'s `quoteId`. |
+    | `bestByTime` | The `quoteId` of the fastest executable row. `null` when no row publishes an ETA. |
+    | `quotes` | Every venue that answered, best first. Each row carries its own output, floor, fees and ETA. |
+    | `rejected` | Venues that could not price the corridor, with a reason code. |
+
+    Every `amountOutAtomic` is already net of the platform fee. The full row shape is on [Quote](/api-reference/quote/quote).
+  </Step>
+
+  <Step title="Build the transaction">
+    Build the decision. Pass `quoteId` to build a row other than `best`, for example the one `bestByTime` names.
+
+    <CodeGroup>
+    ```bash curl
+    curl https://api.bridg.now/v1/bridge/build \
+      -H 'content-type: application/json' \
+      -d '{ "decisionId": "fb0798dc-97d2-41f2-8786-ace0b1c40722" }'
+    ```
+    ```javascript JavaScript
+    const build = await (await fetch(`${api}/bridge/build`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ decisionId: quote.decisionId }),
+    })).json();
+    ```
+    </CodeGroup>
+
+    ```json
+    {
+      "transferId": "ca0e5dee-be62-4a8d-aab9-3c8762b29281",
+      "venue": "across",
+      "steps": [
+        { "vm": "evm", "step": "approve", "chainId": 8453, "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", "data": "0x095ea7b3…", "value": "0" },
+        { "vm": "evm", "step": "fee",     "chainId": 8453, "to": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", "data": "0xa9059cbb…", "value": "0" },
+        { "vm": "evm", "step": "main",    "chainId": 8453, "to": "0x28b5a0e9C621a5BadaA536219b3a228C8168cf5d", "data": "0x8e0250ee…", "value": "0" }
+      ],
+      "expectedOutAtomic": "99937006",
+      "minOutAtomic": "99937006",
+      "feeCapture": "batch",
+      "feeBatch": { "chainId": 8453, "stepIndexes": [0, 1, 2] },
+      "expiresAt": 1789929586118
+    }
+    ```
+
+    `steps` is every transaction to sign, in order. `expectedOutAtomic` equals the `amountOutAtomic` of the row you built. `transferId` is the order id from here on. A build is idempotent: repeating it returns the same steps.
+  </Step>
+
+  <Step title="Sign and submit">
+    Sign each step with the user's wallet. On EVM, supply nonce and gas yourself. On Solana, sign `serializedTx` without rebuilding it.
+
+    Then either hand back the signed bytes for Bridg to broadcast, or report the hash of a transaction the wallet already sent:
+
+    <CodeGroup>
+    ```bash Report a hash
+    curl https://api.bridg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281/submit \
+      -H 'content-type: application/json' \
+      -d '{ "txHash": "0xabab…", "step": "main" }'
+    ```
+    ```bash Bridg broadcasts
+    curl https://api.bridg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281/submit \
+      -H 'content-type: application/json' \
+      -d '{ "signedTransaction": "0x02f8b1…", "step": "main" }'
+    ```
+    </CodeGroup>
+
+    The transaction is decoded and compared to the built steps. A mismatch is refused and nothing is broadcast.
+  </Step>
+
+  <Step title="Track">
+    ```bash
+    curl https://api.bridg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281
+    ```
+
+    `status` moves `PENDING_SIGNATURE` → `SUBMITTED` → `PENDING` → `COMPLETED`. Terminal states are `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` and `ABANDONED`. Poll, or subscribe to the [realtime channel](/api-reference/realtime/watch).
+  </Step>
+</Steps>
+
+## Next
+
+<Columns cols={3}>
+  <Card title="Ranking" href="/concepts/ranking">How the winner is chosen.</Card>
+  <Card title="Fees" href="/concepts/fees">What a transfer costs.</Card>
+  <Card title="Errors" href="/reference/errors">Every error code and what to do.</Card>
+</Columns>

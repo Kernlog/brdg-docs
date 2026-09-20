@@ -1,0 +1,147 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Bridg",
+  "description": "Bridg prices a cross-chain transfer across every bridge that serves it, ranks the results by what lands, and returns the transaction you sign.",
+  "colors": {
+    "primary": "#7fb800",
+    "light": "#c8f542",
+    "dark": "#7fb800"
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://bridg.now"
+  },
+  "favicon": "/favicon.svg",
+  "appearance": {
+    "default": "dark"
+  },
+  "background": {
+    "color": {
+      "light": "#fafafa",
+      "dark": "#0a0a0b"
+    }
+  },
+  "fonts": {
+    "heading": { "family": "Space Grotesk" },
+    "body": { "family": "Inter" }
+  },
+  "api": {
+    "playground": { "display": "interactive" },
+    "examples": {
+      "languages": ["curl", "javascript", "python"],
+      "defaults": "required"
+    }
+  },
+  "navbar": {
+    "links": [
+      { "label": "Open Bridg", "href": "https://bridg.now" }
+    ],
+    "primary": { "type": "button", "label": "Get a quote", "href": "/api-reference/quote/quote" }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          { "group": "Get started", "pages": ["index", "how-it-works", "quickstart"] },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/ranking",
+              "concepts/fees",
+              "concepts/referrals",
+              "concepts/large-orders",
+              "concepts/privacy",
+              "concepts/hyperliquid"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": ["reference/chains", "reference/venues", "reference/errors", "reference/faq"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          { "group": "Overview", "pages": ["api-reference/overview", "api-reference/auth-and-limits"] },
+          {
+            "group": "Markets",
+            "pages": [
+              "api-reference/markets/source-chains",
+              "api-reference/markets/routes",
+              "api-reference/markets/venues"
+            ]
+          },
+          {
+            "group": "Quote and execute",
+            "pages": [
+              "api-reference/quote/quote",
+              "api-reference/quote/build",
+              "api-reference/quote/submit",
+              "api-reference/quote/transfer",
+              "api-reference/quote/redeem",
+              "api-reference/quote/redeem-submit"
+            ]
+          },
+          {
+            "group": "Large orders",
+            "pages": [
+              "api-reference/large-orders/plan-accept",
+              "api-reference/large-orders/split-start",
+              "api-reference/large-orders/split-next",
+              "api-reference/large-orders/split-group"
+            ]
+          },
+          {
+            "group": "Hyperliquid",
+            "pages": ["api-reference/hyperliquid/permit", "api-reference/hyperliquid/spot-transfer"]
+          },
+          {
+            "group": "Sessions and orders",
+            "pages": [
+              "api-reference/sessions/nonce",
+              "api-reference/sessions/verify",
+              "api-reference/sessions/session",
+              "api-reference/sessions/logout",
+              "api-reference/sessions/orders",
+              "api-reference/sessions/order",
+              "api-reference/sessions/history",
+              "api-reference/sessions/profile",
+              "api-reference/sessions/wallet-nickname",
+              "api-reference/sessions/unlink-wallet"
+            ]
+          },
+          {
+            "group": "Realtime",
+            "pages": [
+              "api-reference/realtime/watch",
+              "api-reference/realtime/connection-token",
+              "api-reference/realtime/subscription-token"
+            ]
+          },
+          {
+            "group": "Data",
+            "pages": [
+              "api-reference/data/prices",
+              "api-reference/data/price-history",
+              "api-reference/data/balance",
+              "api-reference/data/portfolio",
+              "api-reference/data/stats",
+              "api-reference/data/leaderboard",
+              "api-reference/data/me",
+              "api-reference/data/health"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "website": "https://bridg.now"
+    }
+  }
+}

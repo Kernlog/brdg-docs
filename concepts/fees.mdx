@@ -1,0 +1,50 @@
+---
+title: Fees
+description: A platform fee tiered on what the aggregation saved, charged in the asset being bridged.
+---
+
+## Rate
+
+The fee is a share of the amount bridged, in bps. The tier is set by how much the chosen route beat the other executable quotes in the same table, measured when the route is decided.
+
+| Average bps saved | Platform fee |
+| --- | --- |
+| 0 to 100 | 5 bps |
+| over 100 to 120 | 10 bps |
+| over 120 | 15 bps |
+
+5 bps is the floor: a route with nothing to compare against pays it and nothing more. 15 bps is the ceiling.
+
+## How it is charged
+
+- Taken from the asset you are bridging, on the source chain. Nothing is charged in a second token.
+- Every output in the quote is already net of it. Building a row returns the same `amountOutAtomic` the quote showed.
+- Disclosed on every quote before anything is signed:
+
+```json
+"fees": {
+  "platform": { "bps": 5, "amountAtomic": "50000", "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", "tierSavedBps": 55 },
+  "referral": null
+}
+```
+
+`null` means no fee of that kind is taken on this route. It is never a zero-rate fee.
+
+Each ranked row also carries its own `feeBps`, `feeAmountAtomic` and `tierSavedBps`, because the tier depends on what that row saved.
+
+## How it is collected
+
+The build response names the shape in `feeCapture`.
+
+| `feeCapture` | What you sign | Signatures |
+| --- | --- | --- |
+| `venue-param` | The venue deducts the fee inside its own leg. | 1 |
+| `merged` | The fee transfer is an instruction inside the venue's Solana transaction. | 1 |
+| `batch` | A `fee` step before the EVM bridge call. Wallets with EIP-5792 batching sign both as one bundle. | 1 or 2 |
+| `none` | No fee on this route. | - |
+
+Where a Solana transaction cannot carry the extra instruction, the fee is forgone and `feeCapture` reads `none`.
+
+## Hyperliquid relay
+
+A transfer to Hyperliquid routed through Arbitrum is credited by Bridg's relayer. The relayer's cost is a flat amount already off the quoted figure, with nothing extra to approve. See [Hyperliquid](/concepts/hyperliquid).

@@ -1,0 +1,42 @@
+---
+title: What is Bridg
+description: A cross-chain bridge aggregator that prices every venue on a route, ranks by what lands, and returns the transaction you sign.
+---
+
+Bridg is a cross-chain bridge aggregator. One request prices a transfer across every bridge that serves the route, ranks the results by the amount that lands in the destination wallet, and returns the unsigned transaction for the best one. You sign from your own wallet. Bridg never holds funds or keys.
+
+- 36 venues: intent bridges, liquidity pools, canonical rails, exchange desks and other aggregators.
+- 73 chains across EVM, Solana, Bitcoin-family, Tron, Move, Cosmos and more.
+- Ranking is on net output in the asset's own units, after every fee. No price feed decides a winner.
+- No API key and no account to quote, build or submit.
+
+## Use cases
+
+<Columns cols={2}>
+  <Card title="Move assets across chains" icon="arrow-right-arrow-left" href="/quickstart">
+    Bridge a token between any two supported chains in one transaction flow.
+  </Card>
+  <Card title="Swap across chains" icon="shuffle" href="/api-reference/quote/quote">
+    Send one asset and receive another on the destination chain.
+  </Card>
+  <Card title="Deposit into Hyperliquid" icon="chart-line" href="/concepts/hyperliquid">
+    Land USDC in a Hyperliquid perps or spot balance from any chain.
+  </Card>
+  <Card title="Route privately" icon="eye-slash" href="/concepts/privacy">
+    Restrict routing to venues that do not publish the link between sender and recipient.
+  </Card>
+</Columns>
+
+## Start integrating
+
+<Columns cols={3}>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Discover markets, get a quote and execute a transfer.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/overview">
+    Every endpoint, with live examples and a playground.
+  </Card>
+  <Card title="Fees and referrals" icon="percent" href="/concepts/fees">
+    What a transfer costs and how to earn on the volume you send.
+  </Card>
+</Columns>

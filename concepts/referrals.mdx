@@ -1,0 +1,55 @@
+---
+title: Referrals
+description: Take a share of the volume you send. Two fields on the quote, no sign-up.
+---
+
+## Fields
+
+| Field | Value |
+| --- | --- |
+| `referralWallet` | The address the share is paid to, valid on the source chain. |
+| `referralBps` | Your rate, `0` to `15`. |
+
+Both or neither. They go on `POST /bridge/quote` and follow the decision through `POST /bridge/build`.
+
+```json
+{
+  "fromChain": "base",
+  "toChain": "solana",
+  "fromToken": "USDC",
+  "toToken": "USDC",
+  "amountAtomic": "100000000",
+  "sender": "0x1111111111111111111111111111111111111111",
+  "recipient": "So1anaRecipient1111111111111111111111111111",
+  "referralWallet": "0x2222222222222222222222222222222222222222",
+  "referralBps": 10
+}
+```
+
+The share is paid on the source chain, so the wallet must be valid for that chain's VM. An EVM address on a route leaving Solana is `400 invalid_referral_wallet`; a rate outside `0` to `15` is `400 invalid_referral_bps`. If you refer traffic on more than one chain family, hold one wallet per family.
+
+## Disclosure
+
+The share is shown next to the platform fee, in the same asset, before signing:
+
+```json
+"fees": {
+  "platform": { "bps": 5,  "amountAtomic": "50000",  "asset": "0x8335…02913", "tierSavedBps": 54 },
+  "referral": { "bps": 10, "amountAtomic": "100000", "asset": "0x8335…02913", "wallet": "0x2222…2222" }
+}
+```
+
+`referral: null` means no share is taken: no referrer was named, or the route earns no fee for anyone.
+
+## Settlement
+
+Your share is charged on top of the platform's and paid straight to your wallet in the same signature: an instruction inside the venue's Solana transaction, or a `fee` step beside the EVM bridge call. Nothing is forwarded later. Where the platform cannot charge at all, both cuts are dropped together.
+
+Each fee is a row in the transfer's `fees` list on `GET /bridge/transfers/{id}` and `GET /bridge/history`:
+
+| `status` | When |
+| --- | --- |
+| `offered` | A `fee` step was built and not yet signed. |
+| `expected` | The charge is inside a signed transaction. |
+| `settled` | The transfer completed. `txHash` is the transaction that paid you. |
+| `void` | The transfer refunded or failed, or the fee step was never signed. |

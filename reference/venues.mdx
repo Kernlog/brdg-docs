@@ -1,0 +1,52 @@
+---
+title: Venues
+description: Every venue Bridg quotes, what it is, and what it can sign.
+---
+
+Every venue is asked on every quote for a corridor it serves and ranked on the same basis. `GET /bridge/venues` reports the live registry: whether each is on, its health, and its capabilities. `GET /bridge/routes` says which serve a corridor right now.
+
+**Mark** is the venue's id in every response. **Kind** is what it is underneath. **Executes on** is what it can hand a wallet to sign:
+
+- **EVM**, **Solana**, **Tron**, **UTXO**: a transaction on that VM.
+- **deposit address**: a plain transfer to an address the venue issues.
+- **signed intent**: an off-chain order the wallet signs.
+- **quote only**: prices corridors but produces nothing signable, so it appears in the table and never wins.
+
+| | Mark | Name | Kind | Executes on |
+| --- | --- | --- | --- | --- |
+| <img src="/images/venues/across.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `across` | Across | Intent | EVM, Solana, Tron |
+| <img src="/images/venues/allbridge-core.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `allbridge-core` | Allbridge Core | Canonical | EVM, Tron |
+| <img src="/images/venues/bridgers.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | <img src="/images/venues/bridg.svg" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `bridg` | Bridg relay | Canonical | EVM. The Hyperliquid route through Arbitrum, credited by Bridg's relayer. |
+| `bridgers` | Bridgers | Pool | EVM, Solana, Tron, deposit address |
+| <img src="/images/venues/cctp.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `cctp` | Circle CCTP | Canonical | EVM |
+| <img src="/images/venues/chainflip.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `chainflip` | Chainflip | Pool | deposit address |
+| <img src="/images/venues/changenow.png" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `changenow` | ChangeNOW | Off-chain desk | deposit address |
+| <img src="/images/venues/cow.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `cow` | CoW Protocol | Intent | signed intent |
+| <img src="/images/venues/debridge.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `debridge` | deBridge | Intent | EVM, Solana, Tron |
+| <img src="/images/venues/eco.png" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `eco` | Eco | Intent | EVM |
+| <img src="/images/venues/garden.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `garden` | Garden | Intent | EVM, Solana, deposit address, Tron |
+| <img src="/images/venues/gas-zip.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `gas-zip` | Gas.zip | Pool | EVM, Solana |
+| <img src="/images/venues/husher.svg" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `husher` | Husher | Off-chain desk | deposit address |
+| <img src="/images/venues/hyperlane.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `hyperlane` | Hyperlane | Canonical | EVM, Tron |
+| <img src="/images/venues/layerswap.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `layerswap` | Layerswap | Canonical | EVM, Solana, deposit address, Tron, UTXO |
+| <img src="/images/venues/lifi.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `lifi` | LI.FI | Aggregator | EVM, Solana |
+| <img src="/images/venues/mayan.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `mayan` | Mayan | Intent | EVM, Solana, signed intent, deposit address |
+| <img src="/images/venues/meson.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `meson` | Meson | Pool | EVM |
+| <img src="/images/venues/near-intents.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `near-intents` | NEAR Intents | Intent | deposit address |
+| <img src="/images/venues/oneinch-fusion-plus.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `oneinch-fusion-plus` | 1inch Fusion+ | Intent | signed intent |
+| <img src="/images/venues/owlto.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `owlto` | Owlto Finance | Pool | EVM |
+| <img src="/images/venues/rango.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `rango` | Rango | Aggregator | EVM, Solana, UTXO, Tron |
+| <img src="/images/venues/relay.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `relay` | Relay | Intent | EVM, Solana, deposit address |
+| <img src="/images/venues/rhino.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `rhino` | rhino.fi | Pool | EVM, Solana, Tron |
+| <img src="/images/venues/rubic.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `rubic` | Rubic | Aggregator | EVM, Solana, UTXO, Tron, deposit address |
+| <img src="/images/venues/sideshift.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `sideshift` | SideShift | Off-chain desk | deposit address |
+| <img src="/images/venues/simpleswap.png" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `simpleswap` | SimpleSwap | Off-chain desk | deposit address |
+| <img src="/images/venues/skip-go.png" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `skip-go` | Skip:Go | Aggregator | EVM, Solana |
+| <img src="/images/venues/socket.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `socket` | Socket | Aggregator | EVM, deposit address, Tron |
+| <img src="/images/venues/squid.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `squid` | Squid | Aggregator | EVM, deposit address, signed intent |
+| <img src="/images/venues/stargate.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `stargate` | Stargate | Aggregator | EVM, Solana, signed intent, Tron |
+| <img src="/images/venues/swapkit.jpg" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `swapkit` | SwapKit | Aggregator | EVM, Solana, deposit address, signed intent, UTXO, Tron |
+| <img src="/images/venues/swft.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `swft` | SWFT Bridge | Off-chain desk | deposit address |
+| <img src="/images/venues/symbiosis.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `symbiosis` | Symbiosis | Pool | EVM, Solana, deposit address, Tron |
+| <img src="/images/venues/thorchain.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `thorchain` | THORChain | Pool | EVM, UTXO, Tron, deposit address |
+| <img src="/images/venues/wormhole.webp" alt="" width="20" height="20" style={{borderRadius:'50%'}} /> | `wormhole` | Wormhole | Aggregator | quote only |
