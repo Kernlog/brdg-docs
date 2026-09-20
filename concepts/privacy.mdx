@@ -6,7 +6,7 @@ description: Restrict routing to venues that do not publish the link between sen
 Most bridges put both of your addresses in one transaction, on chain, forever. `privacy: true` on a quote restricts routing to venues that do not publish that link. 8 of the 36 venues qualify.
 
 ```mermaid
-flowchart LR
+flowchart TD
     Q["Quote"] --> M{"privacy"}
     M -->|false| A["Every venue on the corridor"]
     M -->|true| F["8 venues that do not publish the link"]

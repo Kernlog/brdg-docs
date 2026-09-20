@@ -6,7 +6,7 @@ description: Split a large transfer across venues when one route would walk down
 A bridge quote is a curve, not a rate. On a large order the engine probes the corridor at several sizes, measures how each venue's price moves, and offers a split when an allocation across venues beats the best single route.
 
 ```mermaid
-flowchart LR
+flowchart TD
     Q["Firm quote"] --> P["Probe at several sizes"]
     P --> C{"Split wins?"}
     C -->|no| S["Single route"]

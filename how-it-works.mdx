@@ -14,7 +14,7 @@ sequenceDiagram
     B-->>W: ranked table + decisionId
     W->>B: POST /bridge/build
     B-->>W: unsigned steps + transferId
-    Note over W: sign in the user's own wallet
+    Note over W,B: sign in the user's own wallet
     W->>B: POST /bridge/transfers/{id}/submit
     B->>V: broadcast, then poll until terminal
     W->>B: GET /bridge/transfers/{id}
