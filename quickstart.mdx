@@ -21,7 +21,7 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
     const { routes } = await (await fetch(`${api}/bridge/routes?fromChain=base&toChain=solana`)).json();
     ```
     ```typescript SDK
-    import { createClient } from '@bridg/sdk';
+    import { createClient } from '@kernlog/bridg-sdk';
     const bridg = createClient();
     const { chains } = await bridg.getSourceChains();
     const { routes } = await bridg.getRoutes({ fromChain: 'base', toChain: 'solana' });

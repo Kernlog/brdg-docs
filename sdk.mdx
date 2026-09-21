@@ -4,7 +4,7 @@ description: A typed client for every endpoint. No runtime dependencies.
 ---
 
 ```bash
-npm install @bridg/sdk
+npm install @kernlog/bridg-sdk
 ```
 
 Source and releases: [github.com/Kernlog/bridg-sdk](https://github.com/Kernlog/bridg-sdk). Node 18+ or any runtime with a global `fetch`. Types are generated from the API's OpenAPI document, so requests and responses match the [API reference](/api-reference/overview) exactly.
@@ -12,7 +12,7 @@ Source and releases: [github.com/Kernlog/bridg-sdk](https://github.com/Kernlog/b
 ## Quote, build, sign, submit, track
 
 ```ts
-import { createClient } from '@bridg/sdk';
+import { createClient } from '@kernlog/bridg-sdk';
 
 const bridg = createClient();
 
@@ -72,7 +72,7 @@ const { items } = await bridg.listOrders({ sender: address });
 Every API error is a `BridgError` carrying the API's `code`, the HTTP `status`, `details` and, on `429`, `retryAfterMs`. Codes are listed on [Errors](/reference/errors).
 
 ```ts
-import { isBridgError } from '@bridg/sdk';
+import { isBridgError } from '@kernlog/bridg-sdk';
 
 try {
   await bridg.buildTransfer({ decisionId });
