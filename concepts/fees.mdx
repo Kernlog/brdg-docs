@@ -46,7 +46,7 @@ The build response names the shape in `feeCapture`.
 | `venue-param` | The venue deducts the fee inside its own leg. | 1 |
 | `merged` | The fee transfer is an instruction inside the venue's Solana transaction. | 1 |
 | `batch` | A `fee` step before the EVM bridge call. Wallets with EIP-5792 batching sign both as one bundle. | 1 or 2 |
-| `none` | No fee on this route. | - |
+| `none` | No fee on this route. | none |
 
 Where a Solana transaction cannot carry the extra instruction, the fee is forgone and `feeCapture` reads `none`.
 

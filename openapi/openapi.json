@@ -2085,7 +2085,7 @@
             }
           },
           "404": {
-            "description": "No such decision or transfer - or the aggregator is switched off",
+            "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
               "application/json": {
                 "schema": {
@@ -2951,7 +2951,7 @@
             }
           },
           "404": {
-            "description": "No such decision or transfer - or the aggregator is switched off",
+            "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
               "application/json": {
                 "schema": {
@@ -3265,7 +3265,7 @@
             }
           },
           "404": {
-            "description": "No such decision or transfer - or the aggregator is switched off",
+            "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
               "application/json": {
                 "schema": {
@@ -3950,7 +3950,7 @@
             }
           },
           "404": {
-            "description": "No such decision or transfer - or the aggregator is switched off",
+            "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
               "application/json": {
                 "schema": {
@@ -5204,7 +5204,7 @@
             }
           },
           "404": {
-            "description": "No such decision or transfer - or the aggregator is switched off",
+            "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
               "application/json": {
                 "schema": {
@@ -6102,7 +6102,7 @@
             }
           },
           "404": {
-            "description": "No such decision or transfer - or the aggregator is switched off",
+            "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
               "application/json": {
                 "schema": {
@@ -6698,7 +6698,7 @@
             }
           },
           "404": {
-            "description": "No such decision or transfer - or the aggregator is switched off",
+            "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
               "application/json": {
                 "schema": {

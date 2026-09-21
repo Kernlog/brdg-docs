@@ -5,7 +5,7 @@ description: Restrict a transfer to venues that do not publish the link between 
 
 ## Prerequisites
 
-- The [TypeScript project](/guides/typescript-setup) which provides `src/evm.ts`.
+- The [TypeScript project](/guides/typescript-setup), which provides `src/evm.ts`.
 - Read [Private bridging](/concepts/privacy) for what this does and does not promise.
 
 ## Script
@@ -32,7 +32,7 @@ async function main() {
   if (!quote.best) throw new Error('nothing executable');
   console.log(`${quote.best.venue}: ${quote.best.amountOutAtomic} in ~${quote.best.estimatedSeconds}s`);
 
-  // privacy is carried on the decision; passing it again on build is belt and braces
+  // privacy is carried on the quote; passing it again on build is optional
   const build = await bridg.buildTransfer({ decisionId: quote.decisionId, privacy: true });
 
   // A deposit-address venue returns `deposit` instead of `steps`: send exactly that amount to that address.

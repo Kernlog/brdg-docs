@@ -81,5 +81,18 @@ describe('/bridge/transfers/{id}/submit', 'post', 'Submit transaction',
 describe('/bridge/transfers/{id}', 'get', 'Get transfer',
   'Read one transfer by id. Open to anyone holding the id. Poll until `status` is `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` or `ABANDONED`.');
 
+// Response and field descriptions come from the API's own route definitions. A spaced hyphen used
+// as a dash reads as one in the rendered reference, so it becomes a comma.
+const walk = (node) => {
+  if (Array.isArray(node)) return node.forEach(walk);
+  if (node && typeof node === 'object') {
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'description' && typeof value === 'string') node[key] = value.replace(/ - /g, ', ');
+      else walk(value);
+    }
+  }
+};
+walk(spec);
+
 writeFileSync(new URL('../openapi/openapi.json', import.meta.url), JSON.stringify(spec, null, 2) + '\n');
 console.log(`wrote openapi/openapi.json: ${Object.keys(spec.paths).length} paths`);
