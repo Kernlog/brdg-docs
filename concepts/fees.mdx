@@ -13,7 +13,11 @@ The fee is a share of the amount bridged, in bps. The tier is set by how much th
 | over 100 to 120 | 10 bps |
 | over 120 | 15 bps |
 
-5 bps is the floor: a route with nothing to compare against pays it and nothing more. 15 bps is the ceiling.
+5 bps is the floor: a route with nothing to compare against pays it and nothing more. 15 bps is the ceiling on the rate.
+
+## Maximum
+
+The platform fee on one transfer is never more than **$10**, whatever the rate. The cap is converted into the asset you are bridging at Bridg's own price for it; `feeAmountAtomic` is the capped amount. A referral share is capped at $10 separately. See [Referrals](/concepts/referrals).
 
 ## How it is charged
 

@@ -3,20 +3,21 @@ title: Rate limits
 description: Two limits per minute, and the one field to send when you call on behalf of your users.
 ---
 
-No API key. Two limits apply to every call, counted over a 60-second window:
+No API key. Quote, build and submit are each limited to 10 requests a minute, counted separately per IP address and per requester wallet (`sender`). Reading markets and transfer status is not limited.
 
-| Scope | Limit |
-| --- | --- |
-| Per IP address | 60 requests |
-| Per requester wallet (`sender`) | 30 requests |
+| Scope | Limit | Applies to |
+| --- | --- | --- |
+| Per IP address | 10 a minute | `POST /bridge/quote`, `POST /bridge/build`, `POST /bridge/transfers/{id}/submit` |
+| Per requester wallet | 10 a minute | the same three |
+| Reads | none | `GET /bridge/source-chains`, `/bridge/routes`, `/bridge/venues`, `/bridge/transfers/{id}` |
 
-Both are always counted. A `429` carries the longer of the two waits as `retryAfterMs` and a `Retry-After` header.
+A completed transfer costs three calls. A `429` carries the longer of the two waits as `retryAfterMs` and a `Retry-After` header.
 
 ```json
 { "error": { "code": "rate_limited", "message": "…", "retryAfterMs": 1200 } }
 ```
 
-Quote once per user action, not per keystroke, and reuse `decisionId` for the build: a quote stays valid until its `expiresAt`.
+Quote once per user action, not per keystroke, and reuse `decisionId` for the build: a quote stays valid until its `expiresAt`. If your server calls on behalf of many users from one IP, spread quotes across those users' actions rather than polling.
 
 ## `userIp`
 

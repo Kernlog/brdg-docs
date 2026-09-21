@@ -12,6 +12,8 @@ description: Take a share of the volume you send. Two fields on the quote, no si
 
 Both or neither. They go on `POST /bridge/quote` and follow the decision through `POST /bridge/build`.
 
+Your share on one transfer is capped at **$10**, converted into the source asset at Bridg's price for it, independently of the platform's own $10 cap. `fees.referral.amountAtomic` is the capped amount.
+
 ```json
 {
   "fromChain": "base",
