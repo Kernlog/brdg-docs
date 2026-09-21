@@ -139,5 +139,26 @@
     "socials": {
       "website": "https://bridg.now"
     }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "assistant",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "grok",
+      "aistudio",
+      "devin",
+      "devin-desktop",
+      "mcp",
+      "add-mcp",
+      "cursor",
+      "vscode",
+      "devin-mcp",
+      "download-spec"
+    ],
+    "display": "header"
   }
 }
