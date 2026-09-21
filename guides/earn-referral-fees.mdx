@@ -47,7 +47,7 @@ main().catch((e) => { console.error(e); process.exit(1); });
 
 - Both fields or neither. `referralBps` is `0` to `15`. Your share on one transfer is capped at $10.
 - The share is paid in the same signature as the bridge: an instruction inside the Solana transaction, or the `fee` step beside the EVM call. Nothing is forwarded later.
-- `fees.referral` is `null` when the route earns no fee for anyone.
+- Your share is taken even on a transfer Bridg itself charges nothing for. `fees.referral` is `null` only when no referrer was named.
 - Fee status moves `offered` → `expected` → `settled`, or `void` on a refund or failure. See [Referrals](/concepts/referrals).
 
 ## Endpoints used

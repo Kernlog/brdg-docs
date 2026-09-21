@@ -5,15 +5,16 @@ description: A platform fee tiered on what the aggregation saved, charged in the
 
 ## Rate
 
-The fee is a share of the amount bridged, in bps. The tier is set by how much the chosen route beat the other executable quotes in the same table, measured when the route is decided.
+Bridg charges only when the aggregation saved you something. The tier is set by how much the chosen route beat the other executable quotes in the same table, measured when the route is decided.
 
 | Average bps saved | Platform fee |
 | --- | --- |
-| 0 to 100 | 5 bps |
+| 0 to 10 | none |
+| over 10 to 100 | 5 bps |
 | over 100 to 120 | 10 bps |
 | over 120 | 15 bps |
 
-5 bps is the floor: a route with nothing to compare against pays it and nothing more. 15 bps is the ceiling on the rate.
+A route with nothing to compare against, or one that saved ten bps or less, pays no platform fee: `fees.platform` is `null` and every row's `feeBps` is `0`. 15 bps is the ceiling on the rate.
 
 ## Maximum
 
@@ -23,7 +24,7 @@ The platform fee on one transfer is never more than **$10**, whatever the rate. 
 
 - Taken from the asset you are bridging, on the source chain. Nothing is charged in a second token.
 - Every output in the quote is already net of it. Building a row returns the same `amountOutAtomic` the quote showed.
-- Disclosed on every quote before anything is signed:
+- Disclosed on every quote before anything is signed. A referral share is charged and paid whether or not the platform fee applies:
 
 ```json
 "fees": {

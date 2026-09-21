@@ -25,7 +25,7 @@ It exists as `PENDING_SIGNATURE` and can be read by id.
 Yes. Pass `quoteId` to build. It must name a row in that decision that was scored `ok`.
 
 **What does a transfer cost?**
-5 to 15 bps of the amount bridged, capped at $10, taken in the asset you send, on the source chain. See [Fees](/concepts/fees).
+Nothing, unless the aggregation saved you more than 10 bps against the other quotes. Then 5 to 15 bps of the amount bridged, capped at $10, taken in the asset you send, on the source chain. See [Fees](/concepts/fees).
 
 **Is there a rate limit?**
 Yes: 10 quotes, builds or submits a minute, per IP and per requester wallet. Reads are not limited. A `429` carries `retryAfterMs`. See [Rate limits](/api-reference/rate-limits).
