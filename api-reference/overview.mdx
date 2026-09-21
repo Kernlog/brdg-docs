@@ -6,7 +6,7 @@ description: Seven endpoints to price, execute and track a cross-chain transfer.
 Base URL `https://api.bridg.now/v1`. No API key. Every amount is a string in the asset's atomic units.
 
 ```mermaid
-flowchart LR
+flowchart TD
     M["Markets"] --> Q["POST /bridge/quote"]
     Q --> B["POST /bridge/build"]
     B --> S["sign in your wallet"]
