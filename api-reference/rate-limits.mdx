@@ -1,0 +1,23 @@
+---
+title: Rate limits
+description: Two limits per minute, and the one field to send when you call on behalf of your users.
+---
+
+No API key. Two limits apply to every call, counted over a 60-second window:
+
+| Scope | Limit |
+| --- | --- |
+| Per IP address | 60 requests |
+| Per requester wallet (`sender`) | 30 requests |
+
+Both are always counted. A `429` carries the longer of the two waits as `retryAfterMs` and a `Retry-After` header.
+
+```json
+{ "error": { "code": "rate_limited", "message": "…", "retryAfterMs": 1200 } }
+```
+
+Quote once per user action, not per keystroke, and reuse `decisionId` for the build: a quote stays valid until its `expiresAt`.
+
+## `userIp`
+
+If your server calls the API on behalf of your users, send each user's own IP as `userIp` on the quote. Two venues are geo-gated and refuse an order without it; `GET /bridge/venues` marks them `capabilities.requiresUserIp`. Without the field those venues simply drop out of the table with a reason in `rejected`. It is remembered on the quote and reused on build, so send it once. If your users call from their own browsers, nothing is needed.

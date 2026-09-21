@@ -1,42 +1,36 @@
 ---
 title: API overview
-description: Quote, build, submit and track cross-chain transfers with the Bridg API.
+description: Seven endpoints to price, execute and track a cross-chain transfer.
 ---
 
-Discover markets, request a quote, build the returned transaction, sign it in the user's wallet, and track the result. Base URL `https://api.bridg.now/v1`. No API key.
+Base URL `https://api.bridg.now/v1`. No API key. Every amount is a string in the asset's atomic units.
 
-The OpenAPI 3.1 document is served by the API at [`/v1/openapi.json`](https://api.bridg.now/v1/openapi.json), generated from the same schemas the routes validate against. Use it to generate types and clients.
-
-Start with the [Quickstart](/quickstart) or the [TypeScript SDK](/sdk), or explore the endpoints below.
+```mermaid
+flowchart LR
+    M["Markets"] --> Q["POST /bridge/quote"]
+    Q --> B["POST /bridge/build"]
+    B --> S["sign in your wallet"]
+    S --> U["POST /bridge/transfers/{id}/submit"]
+    U --> T["GET /bridge/transfers/{id}"]
+```
 
 ## Markets
 
-- [Source chains](/api-reference/markets/source-chains): every chain a transfer can start from, with how many venues accept it.
-- [Routes](/api-reference/markets/routes): which venues serve a corridor, and with which assets.
-- [Venues](/api-reference/markets/venues): the venue registry with readiness, health and capabilities.
+| Endpoint | Returns |
+| --- | --- |
+| [`GET /bridge/source-chains`](/api-reference/markets/source-chains) | Every chain a transfer can start from. |
+| [`GET /bridge/routes`](/api-reference/markets/routes) | Which venues serve a corridor, and with which assets. |
+| [`GET /bridge/venues`](/api-reference/markets/venues) | Every venue, whether it is on, and what it can sign. |
 
-## Quote and execute
+## Transfers
 
-- [Quote](/api-reference/quote/quote): price a transfer across every venue. Returns `best`, `bestByPrice`, `bestByTime` and the full table.
-- [Build](/api-reference/quote/build): turn a decision into the unsigned steps a wallet signs.
-- [Submit](/api-reference/quote/submit): hand back the signed transaction, or the hash of one already sent.
-- [Transfer](/api-reference/quote/transfer): read one transfer by id.
-- [Redeem](/api-reference/quote/redeem) and [Redeem submit](/api-reference/quote/redeem-submit): the destination-chain step for burn-and-mint routes.
+| Endpoint | Does |
+| --- | --- |
+| [`POST /bridge/quote`](/api-reference/quote/quote) | Prices the transfer across every venue. Returns `best`, `bestByTime` and the full ranked table. |
+| [`POST /bridge/build`](/api-reference/quote/build) | Turns a quote into the unsigned transactions your wallet signs. |
+| [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) | Takes the signed transaction, or the hash of one you already sent. |
+| [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) | The transfer's status until it is delivered. |
 
-## Large orders
+Hyperliquid is a destination chain like any other: `toChain: "hypercore"`. See [Hyperliquid](/concepts/hyperliquid).
 
-- [Accept plan](/api-reference/large-orders/plan-accept), [Start split](/api-reference/large-orders/split-start), [Next leg](/api-reference/large-orders/split-next), [Split group](/api-reference/large-orders/split-group).
-
-## Sessions and orders
-
-- [Nonce](/api-reference/sessions/nonce) and [Verify](/api-reference/sessions/verify): sign in with a wallet signature.
-- [Orders](/api-reference/sessions/orders) and [History](/api-reference/sessions/history): the caller's own transfers.
-
-## Realtime
-
-- [Watch](/api-reference/realtime/watch): a corridor's live board.
-- [Connection token](/api-reference/realtime/connection-token) and [Subscription token](/api-reference/realtime/subscription-token): credentials for the websocket.
-
-## Data
-
-- [Prices](/api-reference/data/prices), [Price history](/api-reference/data/price-history), [Balance](/api-reference/data/balance), [Portfolio](/api-reference/data/portfolio), [Stats](/api-reference/data/stats), [Leaderboard](/api-reference/data/leaderboard).
+The OpenAPI 3.1 document is at [`/v1/openapi.json`](https://api.bridg.now/v1/openapi.json). The [TypeScript SDK](/sdk) wraps these seven calls.

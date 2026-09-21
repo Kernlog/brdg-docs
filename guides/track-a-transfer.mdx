@@ -1,0 +1,57 @@
+---
+title: Track a transfer
+description: Read a transfer by id until it reaches a terminal status.
+---
+
+## Prerequisites
+
+- The [TypeScript project](/guides/typescript-setup).
+- A `transferId` from a build.
+
+## Script
+
+```typescript src/track-a-transfer.ts
+import { createClient, isTerminalStatus } from '@kernlog/bridg-sdk';
+
+const bridg = createClient();
+
+async function main(transferId: string) {
+  // One read
+  const transfer = await bridg.getTransfer(transferId);
+  console.log(transfer.status, transfer.sourceTxHash, transfer.destinationTxHash);
+
+  if (isTerminalStatus(transfer.status)) return;
+
+  // Or poll until terminal. Default: every 3 s, up to 20 minutes.
+  const done = await bridg.waitForTransfer(transferId, {
+    intervalMs: 5_000,
+    onUpdate: (t) => console.log(new Date().toISOString(), t.status, t.statusDetail ?? ''),
+  });
+  console.log(done.status, done.receivedAmountAtomic, done.receivedAsset);
+}
+
+main(process.argv[2]!).catch((e) => { console.error(e); process.exit(1); });
+```
+
+## Statuses
+
+| `status` | Means |
+| --- | --- |
+| `PENDING_SIGNATURE` | Built, nothing on chain yet. |
+| `SUBMITTED` | Your source transaction is on record. |
+| `PENDING` | The venue has seen it and is working. |
+| `NEEDS_ACTION` | Something must happen on your side; `statusDetail` says what. |
+| `UNKNOWN` | The venue's answer could not be established yet. Not terminal. |
+| `COMPLETED` | Delivered. |
+| `PARTIAL` | A different asset arrived at full value. Do not re-send. |
+| `REFUNDED` | Funds returned to the refund address. |
+| `FAILED` | Terminal, funds not returned. |
+| `ABANDONED` | Bridg stopped polling the venue. Not a statement about the funds. |
+
+A transfer id is an unguessable UUID; anyone holding it can read the transfer. Nothing is ever retried automatically: re-sending on an unestablished outcome is how one order becomes two.
+
+## Endpoints used
+
+| SDK | Endpoint |
+| --- | --- |
+| `getTransfer`, `waitForTransfer` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |

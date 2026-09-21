@@ -7,7 +7,7 @@ description: A typed client for every endpoint. No runtime dependencies.
 npm install @kernlog/bridg-sdk
 ```
 
-Source and releases: [github.com/Kernlog/bridg-sdk](https://github.com/Kernlog/bridg-sdk). Node 18+ or any runtime with a global `fetch`. Types are generated from the API's OpenAPI document, so requests and responses match the [API reference](/api-reference/overview) exactly.
+Source and releases: [github.com/Kernlog/bridg-sdk](https://github.com/Kernlog/bridg-sdk). Node 18+ or any runtime with a global `fetch`. One method per endpoint, typed from the API's OpenAPI document, no runtime dependencies.
 
 ## Quote, build, sign, submit, track
 
@@ -36,7 +36,7 @@ quote.quotes; // every venue that answered, best first
 // Build the unsigned steps. Pass quoteId to build another row.
 const build = await bridg.buildTransfer({ decisionId: quote.decisionId });
 
-// Sign build.steps in order with the user's wallet, then report the hash
+// Sign build.steps in order with your user's wallet, then report the hash
 await bridg.submitTransfer(build.transferId, { txHash: '0x…', step: 'main' });
 
 // Track until terminal
@@ -50,21 +50,9 @@ const transfer = await bridg.waitForTransfer(build.transferId, {
 ```ts
 createClient({
   baseUrl: 'https://api.bridg.now/v1', // default
-  token: 'session token', // only for your own orders
   headers: { 'x-integrator': 'my-app' },
   fetch: customFetch,
 });
-```
-
-## Sessions
-
-Only `listOrders`, `getHistory`, `getProfile` and wallet management need one.
-
-```ts
-const { message } = await bridg.requestNonce({ address, chainFamily: 'evm' });
-const signature = await wallet.signMessage({ message }); // sign the string verbatim
-await bridg.verifySignature({ chainFamily: 'evm', message, signature }); // token kept on the client
-const { transfers } = await bridg.listOrders({ sender: address });
 ```
 
 ## Errors
@@ -85,12 +73,15 @@ try {
 
 ## Methods
 
-| Group | Methods |
+| Method | Endpoint |
 | --- | --- |
-| Markets | `getSourceChains` `getRoutes` `getVenues` |
-| Quote and execute | `getQuote` `buildTransfer` `submitTransfer` `getTransfer` `waitForTransfer` `buildRedeem` `submitRedeem` |
-| Large orders | `acceptPlan` `startSplit` `nextSplitLeg` `getSplitGroup` |
-| Hyperliquid | `submitPermit` `submitSpotTransfer` |
-| Sessions and orders | `requestNonce` `verifySignature` `getSession` `logout` `listOrders` `getOrder` `getHistory` `setUsername` `nameWallet` `unlinkWallet` |
-| Realtime | `watchCorridor` `getConnectionToken` `getSubscriptionToken` |
-| Data | `getPrices` `getPriceHistory` `getBalance` `getPortfolio` `getStats` `getLeaderboard` `getProfile` `getHealth` |
+| `getSourceChains()` | [`GET /bridge/source-chains`](/api-reference/markets/source-chains) |
+| `getRoutes({ fromChain, toChain, privacy? })` | [`GET /bridge/routes`](/api-reference/markets/routes) |
+| `getVenues()` | [`GET /bridge/venues`](/api-reference/markets/venues) |
+| `getQuote(request)` | [`POST /bridge/quote`](/api-reference/quote/quote) |
+| `buildTransfer({ decisionId, quoteId? })` | [`POST /bridge/build`](/api-reference/quote/build) |
+| `submitTransfer(transferId, { txHash \| signedTransaction, step })` | [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) |
+| `getTransfer(transferId)` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |
+| `waitForTransfer(transferId, options?)` | polls the transfer until it is terminal |
+
+Every request and response type is exported: `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/bridg-sdk'`.

@@ -80,8 +80,7 @@
               "guides/deposit-to-hyperliquid",
               "guides/bridge-privately",
               "guides/earn-referral-fees",
-              "guides/large-orders",
-              "guides/list-orders"
+              "guides/track-a-transfer"
             ]
           },
           {
@@ -90,7 +89,6 @@
               "concepts/ranking",
               "concepts/fees",
               "concepts/referrals",
-              "concepts/large-orders",
               "concepts/privacy",
               "concepts/hyperliquid"
             ]
@@ -113,7 +111,7 @@
             "group": "Overview",
             "pages": [
               "api-reference/overview",
-              "api-reference/auth-and-limits"
+              "api-reference/rate-limits"
             ]
           },
           {
@@ -125,66 +123,12 @@
             ]
           },
           {
-            "group": "Quote and execute",
+            "group": "Transfers",
             "pages": [
               "api-reference/quote/quote",
               "api-reference/quote/build",
               "api-reference/quote/submit",
-              "api-reference/quote/transfer",
-              "api-reference/quote/redeem",
-              "api-reference/quote/redeem-submit"
-            ]
-          },
-          {
-            "group": "Large orders",
-            "pages": [
-              "api-reference/large-orders/plan-accept",
-              "api-reference/large-orders/split-start",
-              "api-reference/large-orders/split-next",
-              "api-reference/large-orders/split-group"
-            ]
-          },
-          {
-            "group": "Hyperliquid",
-            "pages": [
-              "api-reference/hyperliquid/permit",
-              "api-reference/hyperliquid/spot-transfer"
-            ]
-          },
-          {
-            "group": "Sessions and orders",
-            "pages": [
-              "api-reference/sessions/nonce",
-              "api-reference/sessions/verify",
-              "api-reference/sessions/session",
-              "api-reference/sessions/logout",
-              "api-reference/sessions/orders",
-              "api-reference/sessions/order",
-              "api-reference/sessions/history",
-              "api-reference/sessions/profile",
-              "api-reference/sessions/wallet-nickname",
-              "api-reference/sessions/unlink-wallet"
-            ]
-          },
-          {
-            "group": "Realtime",
-            "pages": [
-              "api-reference/realtime/watch",
-              "api-reference/realtime/connection-token",
-              "api-reference/realtime/subscription-token"
-            ]
-          },
-          {
-            "group": "Data",
-            "pages": [
-              "api-reference/data/prices",
-              "api-reference/data/price-history",
-              "api-reference/data/balance",
-              "api-reference/data/portfolio",
-              "api-reference/data/stats",
-              "api-reference/data/leaderboard",
-              "api-reference/data/me",
-              "api-reference/data/health"
+              "api-reference/quote/transfer"
             ]
           }
         ]

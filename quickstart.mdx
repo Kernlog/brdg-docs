@@ -179,7 +179,7 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
   </Step>
 
   <Step title="Sign and submit">
-    Sign each step with the user's wallet. On EVM, supply nonce and gas yourself. On Solana, sign `serializedTx` without rebuilding it.
+    Sign each step with your user's wallet. On EVM, supply nonce and gas yourself. On Solana, sign `serializedTx` without rebuilding it.
 
     Then either hand back the signed bytes for Bridg to broadcast, or report the hash of a transaction the wallet already sent:
 
@@ -212,7 +212,7 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
     ```
     </CodeGroup>
 
-    `status` moves `PENDING_SIGNATURE` → `SUBMITTED` → `PENDING` → `COMPLETED`. Terminal states are `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` and `ABANDONED`. Poll, or subscribe to the [realtime channel](/api-reference/realtime/watch).
+    `status` moves `PENDING_SIGNATURE` → `SUBMITTED` → `PENDING` → `COMPLETED`. Terminal states are `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` and `ABANDONED`. Poll it, or use `waitForTransfer` in the SDK. See [Track a transfer](/guides/track-a-transfer).
   </Step>
 </Steps>
 

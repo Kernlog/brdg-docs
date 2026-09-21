@@ -40,7 +40,7 @@ Each venue was checked against one question, using only its own documentation: d
 
 ## In the API
 
-- `privacy: true` on `POST /bridge/quote`, `POST /bridge/watch` and `POST /bridge/build`.
+- `privacy: true` on `POST /bridge/quote`. It is carried on the quote through `POST /bridge/build`.
 - Public venues are dropped before pricing, each listed in `rejected` as `privacy_venue_required`.
 - When no qualifying venue serves the corridor the response carries `emptyReason: "no_private_route"`.
 - `GET /bridge/routes?privacy=true` lists the qualifying venues for a corridor.

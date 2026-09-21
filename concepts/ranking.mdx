@@ -24,10 +24,10 @@ A row is eligible when the venue serves the corridor and asset, its catalog is f
 
 Speed is never a tiebreak on price. A venue that publishes no ETA is not a candidate for `bestByTime`; `null` there means "not stated", not "instant". Both picks are `null` when nothing in the table is executable.
 
-## Venue state is refreshed off the quote path
+## Venue state is kept fresh
 
-Each venue publishes a catalog of chains, assets, corridors and limits. A background worker refreshes it on a schedule; the quote path reads the snapshot. A snapshot that goes stale makes the venue ineligible rather than priced on limits that may no longer exist. A venue that is failing is taken out of the fan-out until it recovers.
+Each venue's chains, assets, corridors and limits are refreshed continuously, so a quote never waits on them. A venue whose state has gone stale, or which is failing, is left out of the table until it recovers rather than priced on limits that may no longer exist.
 
 ## Large orders
 
-The same venue can pay best on a small order and worst on a large one. Above a per-asset floor, a firm quote probes the corridor at several sizes and, when splitting across venues beats the best single route, returns a `splitPlan` beside it. See [Large orders](/concepts/large-orders).
+The same venue can pay best on a small order and worst on a large one. Above a per-asset size, the quote also measures how each venue's price moves with size. When splitting across venues would beat the best single route, the response carries a `splitPlan` describing that allocation and its `improvementBps`; `planReason` says why none is offered. The table itself, and what `build` executes, is unchanged.

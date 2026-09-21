@@ -7,13 +7,13 @@ description: Short answers to common questions.
 No. Bridg never holds funds or keys. Your wallet signs every transaction.
 
 **Do I need an account or API key?**
-No. Quote, build and submit are open. A session is only needed to list your own orders.
+No. Every endpoint is open, bounded by [rate limits](/api-reference/rate-limits).
 
 **Why did a venue with a bigger number not win?**
 Either it was not executable (it can price the corridor but cannot produce something your wallet can sign) or its advertised output was not its net output. Ranking is on what lands.
 
 **Is the quoted output what I receive?**
-It is what the chosen venue answered for the amount that is bridged, net of the platform fee. `minAmountOutAtomic` is the floor you agreed to. A delivery that disagrees with the quote settles as `PARTIAL` and is reconciled by a person.
+It is what the chosen venue answered for the amount that is bridged, net of the platform fee. `minAmountOutAtomic` is the floor you agreed to. A delivery in a different asset settles as `PARTIAL`; check `receivedAsset` and `receivedAmountAtomic` on the transfer.
 
 **What is `quote_drifted`?**
 A quote near expiry is re-priced once before it is built. If the price moved past the allowed budget, the build is refused with both figures. Quote again.
@@ -28,7 +28,7 @@ Yes. Pass `quoteId` to build. It must name a row in that decision that was score
 5 to 15 bps of the amount bridged, taken in the asset you send, on the source chain. See [Fees](/concepts/fees).
 
 **Is there a rate limit?**
-Yes: 60 requests a minute per IP and 30 per requester wallet. A `429` carries `retryAfterMs`.
+Yes: 60 requests a minute per IP and 30 per requester wallet. A `429` carries `retryAfterMs`. See [Rate limits](/api-reference/rate-limits).
 
-**Do I have to use the websocket?**
-No. Every realtime message has a polling fallback and `GET /bridge/transfers/{id}` always answers.
+**How do I know when a transfer is done?**
+Poll `GET /bridge/transfers/{id}` until `status` is terminal, or use `waitForTransfer` in the SDK. See [Track a transfer](/guides/track-a-transfer).

@@ -17,7 +17,6 @@ description: One envelope on every route. Branch on the code.
 | `invalid_referral_wallet` / `invalid_referral_bps` | 400 | Wallet not valid on the source chain's VM, or rate outside 0 to 15. |
 | `built_mismatch` | 400 | The signed transaction is not what was built. Nothing was sent. |
 | `invalid_tx_hash` | 400 | Not a valid hash for the source chain. |
-| `wallet_not_linked` | 403 | `orders?sender=` named a wallet this session has not proved. |
 | `decision_not_found` / `transfer_not_found` | 404 | Expired, or never existed. |
 | `quote_expired` / `quote_drifted` | 409 | Quote again and choose again. |
 | `build_expired` / `transfer_not_signable` | 409 | Build again before signing. |
@@ -26,10 +25,9 @@ description: One envelope on every route. Branch on the code.
 | `below_min` | 409 | The row would not clear Hyperliquid's minimum. |
 | `indicative_decision` | 409 | Indicative pricing cannot be built. |
 | `execution_disabled` | 409 | Execution is switched off. Quoting still serves. |
-| `leg_in_flight` | 409 | The previous split leg is not terminal yet. |
 | `tx_not_found` | 409 | The hash is not visible yet. Retry with the same hash. |
 | `tx_reverted` | 409 | It matched a built step and reverted. Sign again. |
-| `tx_mismatch` | 409 | That hash is on chain and is not ours. Do not sign again. |
+| `tx_mismatch` | 409 | That hash is on chain and is not a step Bridg built. Do not sign again. |
 | `tx_hash_already_claimed` | 409 | Another order already holds that transaction. |
 | `user_ip_mismatch` | 409 | A different end user than the venue created the order for. |
 | `rate_limited` | 429 | Wait `retryAfterMs`. |
