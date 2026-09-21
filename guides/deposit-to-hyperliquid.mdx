@@ -1,0 +1,58 @@
+---
+title: Deposit to Hyperliquid
+description: Land USDC in a Hyperliquid perps or spot balance from any chain with one signature.
+---
+
+## Prerequisites
+
+- The [TypeScript project](/guides/typescript-setup) which provides `src/evm.ts`.
+- A Hyperliquid account address. It does not have to be yours, and it never signs.
+
+## Script
+
+```typescript src/deposit-to-hyperliquid.ts
+import { bridg, signEvmStep, account } from './evm';
+
+async function main() {
+  const quote = await bridg.getQuote({
+    fromChain: 'base',
+    toChain: 'hypercore',
+    fromToken: 'USDC',
+    toToken: 'USDC (perps)', // or 'USDC (spot)'
+    amountAtomic: '50000000',
+    sender: account.address,
+    recipient: '0xHyperliquidAccount',
+  });
+  if (!quote.best) throw new Error(quote.rejected.map((r) => `${r.venue}: ${r.message}`).join('\n'));
+
+  const build = await bridg.buildTransfer({ decisionId: quote.decisionId });
+  let mainHash: `0x${string}` | undefined;
+  for (const step of build.steps) {
+    const hash = await signEvmStep(step);
+    if (step.step === 'main') mainHash = hash;
+  }
+  await bridg.submitTransfer(build.transferId, { txHash: mainHash!, step: 'main' });
+
+  const transfer = await bridg.waitForTransfer(build.transferId, {
+    onUpdate: (t) => console.log(t.status, t.postStep?.creditedAmountAtomic ?? ''),
+  });
+  console.log(transfer.status);
+}
+
+main().catch((e) => { console.error(e); process.exit(1); });
+```
+
+## Notes
+
+- Two kinds of route compete on the same table: venues that credit the account directly, and a route through Arbitrum where Bridg's relayer credits it. Both need one signature, on the source chain.
+- On the Arbitrum route the transfer carries `postStep`; its `txHash` and `creditedAmountAtomic` report the credit landing.
+- Minimums: 5.10 USDC to an account Hyperliquid has never seen, 1 USDC otherwise. A row below the floor appears in `rejected` as `below_min` with the figure it would have delivered.
+
+## Endpoints used
+
+| SDK | Endpoint |
+| --- | --- |
+| `getQuote` | [`POST /bridge/quote`](/api-reference/quote/quote) |
+| `buildTransfer` | [`POST /bridge/build`](/api-reference/quote/build) |
+| `submitTransfer` | [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) |
+| `waitForTransfer` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |

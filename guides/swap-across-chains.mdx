@@ -1,0 +1,75 @@
+---
+title: Swap across chains
+description: Send SOL on Solana and receive USDC on Base, choosing the fastest route.
+---
+
+## Prerequisites
+
+- The [TypeScript project](/guides/typescript-setup) plus `npm install @solana/web3.js bs58`.
+- A Solana wallet holding SOL, and `SOLANA_PRIVATE_KEY` (base58) and `SOLANA_RPC_URL` in `.env`.
+
+## Script
+
+```typescript src/swap-across-chains.ts
+import 'dotenv/config';
+import { createClient } from '@kernlog/bridg-sdk';
+import { Connection, Keypair, VersionedTransaction } from '@solana/web3.js';
+import bs58 from 'bs58';
+
+const keypair = Keypair.fromSecretKey(bs58.decode(process.env.SOLANA_PRIVATE_KEY!));
+const connection = new Connection(process.env.SOLANA_RPC_URL!);
+const bridg = createClient();
+
+async function main() {
+  // 1. Quote: 0.5 SOL to USDC on Base
+  const quote = await bridg.getQuote({
+    fromChain: 'solana',
+    toChain: 'base',
+    fromToken: null, // null is the chain's native asset
+    toToken: 'USDC',
+    amountAtomic: '500000000',
+    sender: keypair.publicKey.toBase58(),
+    recipient: '0xYourBaseWallet',
+  });
+
+  // 2. Take the fastest executable row instead of the best-priced one
+  const quoteId = quote.bestByTime ?? quote.bestByPrice;
+  if (!quoteId) throw new Error('nothing executable');
+  const row = quote.quotes.find((q) => q.quoteId === quoteId)!;
+  console.log(`${row.venue}: ${row.amountOutAtomic} USDC in ~${row.estimatedSeconds}s`);
+
+  // 3. Build that row
+  const build = await bridg.buildTransfer({ decisionId: quote.decisionId, quoteId });
+
+  // 4. Sign the Solana transaction as built. Do not rebuild it: the message bytes are what Bridg verifies.
+  const step = build.steps.find((s) => s.step === 'main');
+  if (!step || step.vm !== 'svm') throw new Error('expected a Solana main step');
+  const tx = VersionedTransaction.deserialize(
+    step.encoding === 'base64' ? Buffer.from(step.serializedTx, 'base64') : Buffer.from(step.serializedTx, 'hex'),
+  );
+  tx.sign([keypair]);
+  const signature = await connection.sendRawTransaction(tx.serialize());
+
+  // 5. Report the signature and wait
+  await bridg.submitTransfer(build.transferId, { txHash: signature, step: 'main' });
+  const transfer = await bridg.waitForTransfer(build.transferId);
+  console.log(transfer.status, transfer.receivedAmountAtomic);
+}
+
+main().catch((e) => { console.error(e); process.exit(1); });
+```
+
+## Notes
+
+- `fromToken: null` or `toToken: null` means the chain's native asset. Symbols and addresses are both accepted.
+- A wallet may add its own compute-budget instructions; every instruction Bridg built must stay byte-identical.
+- The Solana step carries `refreshBlockhash`; when it is `true`, fetch a fresh blockhash and set it on the message before signing.
+
+## Endpoints used
+
+| SDK | Endpoint |
+| --- | --- |
+| `getQuote` | [`POST /bridge/quote`](/api-reference/quote/quote) |
+| `buildTransfer` | [`POST /bridge/build`](/api-reference/quote/build) |
+| `submitTransfer` | [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) |
+| `waitForTransfer` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |

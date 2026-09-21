@@ -1,0 +1,58 @@
+---
+title: Earn referral fees
+description: Take up to 15 bps on every transfer you send through Bridg. Two fields on the quote.
+---
+
+## Prerequisites
+
+- The [TypeScript project](/guides/typescript-setup).
+- One wallet per chain family you refer on. The share is paid on the source chain.
+
+## Script
+
+```typescript src/earn-referral-fees.ts
+import { createClient } from '@kernlog/bridg-sdk';
+
+const bridg = createClient();
+const REFERRAL: Record<'evm' | 'svm', string> = {
+  evm: '0xYourEvmWallet',
+  svm: 'YourSolanaWallet',
+};
+
+async function main() {
+  const quote = await bridg.getQuote({
+    fromChain: 'base',
+    toChain: 'solana',
+    fromToken: 'USDC',
+    toToken: 'USDC',
+    amountAtomic: '100000000',
+    sender: '0xUserWallet',
+    recipient: 'UserSolanaWallet',
+    referralWallet: REFERRAL.evm, // must be valid on the SOURCE chain
+    referralBps: 10,
+  });
+
+  // Disclosed next to the platform fee, in the input asset, before anything is signed
+  console.log(quote.fees.referral); // { bps: 10, amountAtomic: '100000', asset: '0x8335…', wallet: '0xYour…' }
+
+  // Later: each fee leg on the transfer reports where your share is
+  const transfer = await bridg.getTransfer('transferId');
+  for (const fee of transfer.fees) console.log(fee.kind, fee.status, fee.amountAtomic, fee.txHash);
+}
+
+main().catch((e) => { console.error(e); process.exit(1); });
+```
+
+## Notes
+
+- Both fields or neither. `referralBps` is `0` to `15`.
+- The share is paid in the same signature as the bridge: an instruction inside the Solana transaction, or the `fee` step beside the EVM call. Nothing is forwarded later.
+- `fees.referral` is `null` when the route earns no fee for anyone.
+- Fee status moves `offered` → `expected` → `settled`, or `void` on a refund or failure. See [Referrals](/concepts/referrals).
+
+## Endpoints used
+
+| SDK | Endpoint |
+| --- | --- |
+| `getQuote` | [`POST /bridge/quote`](/api-reference/quote/quote) |
+| `getTransfer` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |

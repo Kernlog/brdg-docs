@@ -24,28 +24,66 @@
     }
   },
   "fonts": {
-    "heading": { "family": "Space Grotesk" },
-    "body": { "family": "Inter" }
+    "heading": {
+      "family": "Space Grotesk"
+    },
+    "body": {
+      "family": "Inter"
+    }
   },
   "api": {
-    "playground": { "display": "interactive" },
+    "playground": {
+      "display": "interactive"
+    },
     "examples": {
-      "languages": ["curl", "javascript", "python"],
+      "languages": [
+        "curl",
+        "javascript",
+        "python"
+      ],
       "defaults": "required"
     }
   },
   "navbar": {
     "links": [
-      { "label": "Open Bridg", "href": "https://bridg.now" }
+      {
+        "label": "Open Bridg",
+        "href": "https://bridg.now"
+      }
     ],
-    "primary": { "type": "button", "label": "Get a quote", "href": "/api-reference/quote/quote" }
+    "primary": {
+      "type": "button",
+      "label": "Get a quote",
+      "href": "/api-reference/quote/quote"
+    }
   },
   "navigation": {
     "tabs": [
       {
         "tab": "Documentation",
         "groups": [
-          { "group": "Get started", "pages": ["index", "how-it-works", "quickstart", "sdk"] },
+          {
+            "group": "Get started",
+            "pages": [
+              "index",
+              "how-it-works",
+              "quickstart",
+              "sdk"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/typescript-setup",
+              "guides/bridge-tokens",
+              "guides/swap-across-chains",
+              "guides/deposit-to-hyperliquid",
+              "guides/bridge-privately",
+              "guides/earn-referral-fees",
+              "guides/large-orders",
+              "guides/list-orders"
+            ]
+          },
           {
             "group": "Concepts",
             "pages": [
@@ -59,14 +97,25 @@
           },
           {
             "group": "Reference",
-            "pages": ["reference/chains", "reference/venues", "reference/errors", "reference/faq"]
+            "pages": [
+              "reference/chains",
+              "reference/venues",
+              "reference/errors",
+              "reference/faq"
+            ]
           }
         ]
       },
       {
         "tab": "API Reference",
         "groups": [
-          { "group": "Overview", "pages": ["api-reference/overview", "api-reference/auth-and-limits"] },
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/overview",
+              "api-reference/auth-and-limits"
+            ]
+          },
           {
             "group": "Markets",
             "pages": [
@@ -97,7 +146,10 @@
           },
           {
             "group": "Hyperliquid",
-            "pages": ["api-reference/hyperliquid/permit", "api-reference/hyperliquid/spot-transfer"]
+            "pages": [
+              "api-reference/hyperliquid/permit",
+              "api-reference/hyperliquid/spot-transfer"
+            ]
           },
           {
             "group": "Sessions and orders",

@@ -1,0 +1,61 @@
+---
+title: Bridge privately
+description: Restrict a transfer to venues that do not publish the link between sender and recipient.
+---
+
+## Prerequisites
+
+- The [TypeScript project](/guides/typescript-setup) which provides `src/evm.ts`.
+- Read [Private bridging](/concepts/privacy) for what this does and does not promise.
+
+## Script
+
+```typescript src/bridge-privately.ts
+import { bridg, signEvmStep, account } from './evm';
+
+async function main() {
+  // Which private venues serve the corridor at all
+  const { routes } = await bridg.getRoutes({ fromChain: 'base', toChain: 'arbitrum', privacy: true });
+  if (routes.length === 0) throw new Error('no private route on this corridor');
+
+  const quote = await bridg.getQuote({
+    fromChain: 'base',
+    toChain: 'arbitrum',
+    fromToken: 'USDC',
+    toToken: 'USDC',
+    amountAtomic: '100000000',
+    sender: account.address,
+    recipient: '0xRecipient',
+    privacy: true,
+  });
+  if (quote.emptyReason === 'no_private_route') throw new Error('no private venue priced this size');
+  if (!quote.best) throw new Error('nothing executable');
+  console.log(`${quote.best.venue}: ${quote.best.amountOutAtomic} in ~${quote.best.estimatedSeconds}s`);
+
+  // privacy is carried on the decision; passing it again on build is belt and braces
+  const build = await bridg.buildTransfer({ decisionId: quote.decisionId, privacy: true });
+
+  // A deposit-address venue returns `deposit` instead of `steps`: send exactly that amount to that address.
+  if (build.deposit) {
+    console.log(`send ${build.deposit.amountAtomic} to ${build.deposit.address} before ${new Date(build.deposit.deadlineMs)}`);
+    return;
+  }
+  for (const step of build.steps) await signEvmStep(step);
+}
+
+main().catch((e) => { console.error(e); process.exit(1); });
+```
+
+## Notes
+
+- Public venues are dropped before pricing and listed in `rejected` as `privacy_venue_required`.
+- Expect a shorter table, a worse price and a slower transfer than the open route.
+- `GET /bridge/venues` reports each venue's `privacyModel`.
+
+## Endpoints used
+
+| SDK | Endpoint |
+| --- | --- |
+| `getRoutes` | [`GET /bridge/routes`](/api-reference/markets/routes) |
+| `getQuote` | [`POST /bridge/quote`](/api-reference/quote/quote) |
+| `buildTransfer` | [`POST /bridge/build`](/api-reference/quote/build) |

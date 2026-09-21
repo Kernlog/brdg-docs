@@ -1,0 +1,54 @@
+---
+title: List a wallet's orders
+description: Sign in with a wallet signature and page through its transfers.
+---
+
+## Prerequisites
+
+- The [TypeScript project](/guides/typescript-setup).
+
+## Script
+
+```typescript src/list-orders.ts
+import 'dotenv/config';
+import { createClient } from '@kernlog/bridg-sdk';
+import { privateKeyToAccount } from 'viem/accounts';
+
+const account = privateKeyToAccount(process.env.EVM_PRIVATE_KEY as `0x${string}`);
+const bridg = createClient();
+
+async function main() {
+  // 1. Sign the challenge exactly as returned
+  const { message } = await bridg.requestNonce({ address: account.address, chainFamily: 'evm' });
+  const signature = await account.signMessage({ message });
+  await bridg.verifySignature({ chainFamily: 'evm', message, signature }); // token kept on the client
+
+  // 2. Page through this wallet's orders, newest first
+  let cursor: string | undefined;
+  do {
+    const page = await bridg.listOrders({ sender: account.address, limit: 20, cursor });
+    for (const order of page.transfers) console.log(order.createdAt, order.venue, order.status, order.amountInAtomic);
+    cursor = page.nextCursor ?? undefined;
+  } while (cursor);
+
+  // 3. Volume, savings and rank across every linked wallet
+  console.log(await bridg.getProfile());
+}
+
+main().catch((e) => { console.error(e); process.exit(1); });
+```
+
+## Notes
+
+- Quote, build, submit and reading a transfer by id never need a session. Only listing your own orders and profile routes do.
+- The nonce is single-use and lives five minutes. Sign the string verbatim; a re-rendered message does not verify.
+- `listOrders` for a wallet the session has not proved is `403 wallet_not_linked`.
+
+## Endpoints used
+
+| SDK | Endpoint |
+| --- | --- |
+| `requestNonce` | [`POST /auth/nonce`](/api-reference/sessions/nonce) |
+| `verifySignature` | [`POST /auth/verify`](/api-reference/sessions/verify) |
+| `listOrders` | [`GET /bridge/orders`](/api-reference/sessions/orders) |
+| `getProfile` | [`GET /profile`](/api-reference/data/me) |

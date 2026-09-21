@@ -1,0 +1,57 @@
+---
+title: Set up a TypeScript project
+description: The project every guide here starts from.
+---
+
+<Steps>
+  <Step title="Create the project">
+    ```bash
+    mkdir bridg-app && cd bridg-app
+    npm init -y
+    npm install @kernlog/bridg-sdk viem dotenv
+    npm install -D typescript tsx @types/node
+    npx tsc --init
+    ```
+
+    `viem` signs on EVM chains. Guides that start from Solana add `@solana/web3.js` and `bs58`.
+  </Step>
+  <Step title="Add a .env">
+    ```bash .env
+    EVM_PRIVATE_KEY=0x…
+    EVM_RPC_URL=https://mainnet.base.org
+    ```
+
+    Bridg itself needs no key. The private key is only for signing the transactions Bridg builds; never commit it.
+  </Step>
+  <Step title="Create the client and a signer">
+    ```typescript src/evm.ts
+    import 'dotenv/config';
+    import { createClient, type BuildStep } from '@kernlog/bridg-sdk';
+    import { createPublicClient, createWalletClient, http, type Hex } from 'viem';
+    import { privateKeyToAccount } from 'viem/accounts';
+    import { base } from 'viem/chains';
+
+    export const bridg = createClient();
+    export const account = privateKeyToAccount(process.env.EVM_PRIVATE_KEY as Hex);
+
+    const wallet = createWalletClient({ account, chain: base, transport: http(process.env.EVM_RPC_URL) });
+    const chain = createPublicClient({ chain: base, transport: http(process.env.EVM_RPC_URL) });
+
+    /** Sign one EVM step from a build and wait for it to be mined. */
+    export async function signEvmStep(step: BuildStep): Promise<Hex> {
+      if (step.vm !== 'evm') throw new Error(`expected an EVM step, got ${step.vm}`);
+      const hash = await wallet.sendTransaction({
+        to: step.to as Hex,
+        data: step.data as Hex,
+        value: BigInt(step.value),
+      });
+      await chain.waitForTransactionReceipt({ hash });
+      return hash;
+    }
+    ```
+
+    Bridg returns unsigned steps; this is the only place a key is used. Run any script with `npx tsx src/<file>.ts`.
+  </Step>
+</Steps>
+
+The SDK ships ESM and CommonJS with type declarations. Every type used in the guides is exported: `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/bridg-sdk'`.
