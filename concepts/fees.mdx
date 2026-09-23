@@ -5,7 +5,7 @@ description: A platform fee tiered on what the aggregation saved, charged in the
 
 ## Rate
 
-Bridg charges only when the aggregation saved you something. The tier is set by how much the chosen route beat the other executable quotes in the same table, measured when the route is decided.
+Bridg charges only when the aggregation saved you something. The tier is set by how much the chosen route beat the four closest executable quotes in the same table, on average, measured when the route is decided. Venues far behind the market never raise the tier.
 
 | Average bps saved | Platform fee |
 | --- | --- |
