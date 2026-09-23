@@ -1,6 +1,6 @@
 ---
 title: Earn referral fees
-description: Take up to 15 bps on every transfer you send through Bridg. Two fields on the quote.
+description: Take up to 15 bps on every transfer you send through BRDG. Two fields on the quote.
 ---
 
 ## Prerequisites
@@ -11,16 +11,16 @@ description: Take up to 15 bps on every transfer you send through Bridg. Two fie
 ## Script
 
 ```typescript src/earn-referral-fees.ts
-import { createClient } from '@kernlog/bridg-sdk';
+import { createClient } from '@kernlog/brdg-sdk';
 
-const bridg = createClient();
+const brdg = createClient();
 const REFERRAL: Record<'evm' | 'svm', string> = {
   evm: '0xYourEvmWallet',
   svm: 'YourSolanaWallet',
 };
 
 async function main() {
-  const quote = await bridg.getQuote({
+  const quote = await brdg.getQuote({
     fromChain: 'base',
     toChain: 'solana',
     fromToken: 'USDC',
@@ -36,7 +36,7 @@ async function main() {
   console.log(quote.fees.referral); // { bps: 10, amountAtomic: '100000', asset: '0x8335…', wallet: '0xYour…' }
 
   // Later: each fee leg on the transfer reports where your share is
-  const transfer = await bridg.getTransfer('transferId');
+  const transfer = await brdg.getTransfer('transferId');
   for (const fee of transfer.fees) console.log(fee.kind, fee.status, fee.amountAtomic, fee.txHash);
 }
 
@@ -47,7 +47,7 @@ main().catch((e) => { console.error(e); process.exit(1); });
 
 - Both fields or neither. `referralBps` is `0` to `15`. Your share on one transfer is capped at $10.
 - The share is paid in the same signature as the bridge: an instruction inside the Solana transaction, or the `fee` step beside the EVM call. Nothing is forwarded later.
-- Your share is taken even on a transfer Bridg itself charges nothing for. `fees.referral` is `null` only when no referrer was named.
+- Your share is taken even on a transfer BRDG itself charges nothing for. `fees.referral` is `null` only when no referrer was named.
 - Fee status moves `offered` → `expected` → `settled`, or `void` on a refund or failure. See [Referrals](/concepts/referrals).
 
 ## Endpoints used

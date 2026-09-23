@@ -5,7 +5,7 @@ description: A platform fee tiered on what the aggregation saved, charged in the
 
 ## Rate
 
-Bridg charges only when the aggregation saved you something. The tier is set by how much the chosen route beat the four closest executable quotes in the same table, on average, measured when the route is decided. Venues far behind the market never raise the tier.
+BRDG charges only when the aggregation saved you something. The tier is set by how much the chosen route beat the four closest executable quotes in the same table, on average, measured when the route is decided. Venues far behind the market never raise the tier.
 
 | Average bps saved | Platform fee |
 | --- | --- |
@@ -18,7 +18,7 @@ A route with nothing to compare against, or one that saved ten bps or less, pays
 
 ## Maximum
 
-The platform fee on one transfer is never more than **$10**, whatever the rate. The cap is converted into the asset you are bridging at Bridg's own price for it; `feeAmountAtomic` is the capped amount. A referral share is capped at $10 separately. See [Referrals](/concepts/referrals).
+The platform fee on one transfer is never more than **$10**, whatever the rate. The cap is converted into the asset you are bridging at BRDG's own price for it; `feeAmountAtomic` is the capped amount. A referral share is capped at $10 separately. See [Referrals](/concepts/referrals).
 
 ## How it is charged
 
@@ -52,4 +52,4 @@ Where a Solana transaction cannot carry the extra instruction, the fee is forgon
 
 ## Hyperliquid relay
 
-A transfer to Hyperliquid routed through Arbitrum is credited by Bridg's relayer. The relayer's cost is a flat amount already off the quoted figure, with nothing extra to approve. See [Hyperliquid](/concepts/hyperliquid).
+A transfer to Hyperliquid routed through Arbitrum is credited by BRDG's relayer. The relayer's cost is a flat amount already off the quoted figure, with nothing extra to approve. See [Hyperliquid](/concepts/hyperliquid).

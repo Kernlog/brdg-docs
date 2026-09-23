@@ -13,13 +13,13 @@ description: "Move USDC from Base to Arbitrum: quote, build, sign with viem, sub
 Save as `src/bridge-tokens.ts` and run with `npx tsx src/bridge-tokens.ts`.
 
 ```typescript src/bridge-tokens.ts
-import { isBridgError } from '@kernlog/bridg-sdk';
+import { isBrdgError } from '@kernlog/brdg-sdk';
 import type { Hex } from 'viem';
-import { account, bridg, signEvmStep } from './evm';
+import { account, brdg, signEvmStep } from './evm';
 
 async function main() {
   // 1. Quote: 25 USDC on Base to USDC on Arbitrum
-  const quote = await bridg.getQuote({
+  const quote = await brdg.getQuote({
     fromChain: 'base',
     toChain: 'arbitrum',
     fromToken: 'USDC',
@@ -32,7 +32,7 @@ async function main() {
   console.log(`${quote.best.venue} delivers ${quote.best.amountOutAtomic} in ~${quote.best.estimatedSeconds}s`);
 
   // 2. Build the winner
-  const build = await bridg.buildTransfer({ decisionId: quote.decisionId });
+  const build = await brdg.buildTransfer({ decisionId: quote.decisionId });
 
   // 3. Sign every step in order. Only `main` moves the order; the others are approvals and the fee.
   let mainHash: Hex | undefined;
@@ -43,17 +43,17 @@ async function main() {
   if (!mainHash) throw new Error('build carried no main step');
 
   // 4. Report the hash
-  await bridg.submitTransfer(build.transferId, { txHash: mainHash, step: 'main' });
+  await brdg.submitTransfer(build.transferId, { txHash: mainHash, step: 'main' });
 
   // 5. Wait for delivery
-  const transfer = await bridg.waitForTransfer(build.transferId, {
+  const transfer = await brdg.waitForTransfer(build.transferId, {
     onUpdate: (t) => console.log(t.status),
   });
   console.log(transfer.status, transfer.destinationTxHash);
 }
 
 main().catch((error) => {
-  if (isBridgError(error)) console.error(error.code, error.message, error.details);
+  if (isBrdgError(error)) console.error(error.code, error.message, error.details);
   else console.error(error);
   process.exit(1);
 });

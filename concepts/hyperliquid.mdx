@@ -17,7 +17,7 @@ Moving between the two afterwards is an action you take on Hyperliquid itself.
 ## Two routes, ranked together
 
 - **Native.** Mayan, Circle CCTP, LI.FI and Symbiosis credit a Hyperliquid account directly from the source chain. Mayan and CCTP can land on either balance; the others land on perps.
-- **Via Arbitrum.** Where no native venue serves the route, or a plain bridge to Arbitrum is cheaper, the bridge delivers USDC to Bridg's relayer wallet and the relayer credits the account. Nothing to sign or claim after the source chain; the transfer's `postStep` reports the credit. The relayer's cost is a flat amount already off the quoted figure.
+- **Via Arbitrum.** Where no native venue serves the route, or a plain bridge to Arbitrum is cheaper, the bridge delivers USDC to BRDG's relayer wallet and the relayer credits the account. Nothing to sign or claim after the source chain; the transfer's `postStep` reports the credit. The relayer's cost is a flat amount already off the quoted figure.
 
 Neither route needs a signature from the receiving account, so the recipient can be any Hyperliquid address, including one you do not control.
 

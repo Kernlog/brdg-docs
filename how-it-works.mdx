@@ -6,7 +6,7 @@ description: Quote, build, sign, submit, track. Four calls, and the keys stay wi
 ```mermaid
 sequenceDiagram
     participant W as Wallet
-    participant B as Bridg API
+    participant B as BRDG API
     participant V as Venues
     W->>B: POST /bridge/quote
     B->>V: price the corridor, in parallel
@@ -28,13 +28,13 @@ sequenceDiagram
     Building a quote returns the unsigned transactions for the chosen row: an approval where one is needed, a fee step where the venue has no fee parameter of its own, then the bridge call. The transfer record exists before the steps are returned, so it can be tracked even if nothing is ever signed.
   </Step>
   <Step title="Sign">
-    Your user's wallet signs the steps in order. Bridg has no signer and no key. Wallets with EIP-5792 batching sign the fee and bridge steps as one bundle.
+    Your user's wallet signs the steps in order. BRDG has no signer and no key. Wallets with EIP-5792 batching sign the fee and bridge steps as one bundle.
   </Step>
   <Step title="Submit">
-    Hand back either the signed bytes, which Bridg broadcasts through its own nodes, or the hash of a transaction the wallet already sent. Either way the transaction is checked against the steps that were built. Anything else is refused.
+    Hand back either the signed bytes, which BRDG broadcasts through its own nodes, or the hash of a transaction the wallet already sent. Either way the transaction is checked against the steps that were built. Anything else is refused.
   </Step>
   <Step title="Track">
-    Bridg polls the venue until the transfer reaches a terminal state. Read `GET /bridge/transfers/{id}` at any time; the statuses are listed in [Track a transfer](/guides/track-a-transfer).
+    BRDG polls the venue until the transfer reaches a terminal state. Read `GET /bridge/transfers/{id}` at any time; the statuses are listed in [Track a transfer](/guides/track-a-transfer).
   </Step>
 </Steps>
 

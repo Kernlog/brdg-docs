@@ -11,19 +11,19 @@ description: Read a transfer by id until it reaches a terminal status.
 ## Script
 
 ```typescript src/track-a-transfer.ts
-import { createClient, isTerminalStatus } from '@kernlog/bridg-sdk';
+import { createClient, isTerminalStatus } from '@kernlog/brdg-sdk';
 
-const bridg = createClient();
+const brdg = createClient();
 
 async function main(transferId: string) {
   // One read
-  const transfer = await bridg.getTransfer(transferId);
+  const transfer = await brdg.getTransfer(transferId);
   console.log(transfer.status, transfer.sourceTxHash, transfer.destinationTxHash);
 
   if (isTerminalStatus(transfer.status)) return;
 
   // Or poll until terminal. Default: every 3 s, up to 20 minutes.
-  const done = await bridg.waitForTransfer(transferId, {
+  const done = await brdg.waitForTransfer(transferId, {
     intervalMs: 5_000,
     onUpdate: (t) => console.log(new Date().toISOString(), t.status, t.statusDetail ?? ''),
   });
@@ -46,7 +46,7 @@ main(process.argv[2]!).catch((e) => { console.error(e); process.exit(1); });
 | `PARTIAL` | A different asset arrived at full value. Do not re-send. |
 | `REFUNDED` | Funds returned to the refund address. |
 | `FAILED` | Terminal, funds not returned. |
-| `ABANDONED` | Bridg stopped polling the venue. Not a statement about the funds. |
+| `ABANDONED` | BRDG stopped polling the venue. Not a statement about the funds. |
 
 A transfer id is an unguessable UUID; anyone holding it can read the transfer. Nothing is ever retried automatically: re-sending on an unestablished outcome is how one order becomes two.
 

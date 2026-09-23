@@ -2,13 +2,13 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const API = process.env.BRIDGE_API ?? 'http://localhost:3001';
-const PUBLIC_SERVER = 'https://api.bridg.now/v1';
+const PUBLIC_SERVER = 'https://api.brdg.now/v1';
 const EXAMPLES = new URL('../openapi/examples/', import.meta.url);
 
 const spec = await (await fetch(`${API}/v1/openapi.json`)).json();
 
 // The public surface: markets, and quote -> build -> submit -> transfer. Everything
-// else the API serves is for the Bridg app itself and is not documented here.
+// else the API serves is for the BRDG app itself and is not documented here.
 const PUBLIC_PATHS = [
   '/bridge/source-chains',
   '/bridge/routes',
@@ -27,8 +27,8 @@ for (const key of ['permit', 'relayFeePermit', 'spotTransfer']) delete build.pro
 
 spec.info = {
   ...spec.info,
-  title: 'Bridg API',
-  description: 'Quote, build, submit and track cross-chain transfers across every venue Bridg aggregates.',
+  title: 'BRDG API',
+  description: 'Quote, build, submit and track cross-chain transfers across every venue BRDG aggregates.',
 };
 spec.servers = [{ url: PUBLIC_SERVER }];
 
@@ -71,13 +71,13 @@ describe('/bridge/source-chains', 'get', 'Get source chains',
 describe('/bridge/routes', 'get', 'Get routes',
   'Which venues serve a corridor, and with which assets. `tokenSymbols` is capped; `tokenSymbolCount` is exact. `privacy=true` narrows to venues a private transfer may use. The response carries `Cache-Control: max-age=30` and an `ETag`.');
 describe('/bridge/venues', 'get', 'Get venues',
-  'Every venue Bridg quotes: whether it is on, its health, and its capabilities: which trade types it prices, how its quote is executed, whether it needs `userIp`, and its privacy model.');
+  'Every venue BRDG quotes: whether it is on, its health, and its capabilities: which trade types it prices, how its quote is executed, whether it needs `userIp`, and its privacy model.');
 describe('/bridge/quote', 'post', 'Get quote',
   'Price a transfer across every venue that serves it. `best` is the row `build` executes by default; `bestByPrice` and `bestByTime` name rows in `quotes` by `quoteId`; `rejected` lists venues that could not price it, with a reason. Every `amountOutAtomic` is already net of the platform fee. Send `sender`, and `recipient` when the destination uses a different address format. Send `userIp` when calling on behalf of your users. `indicative: true` is comparison pricing and cannot be built.');
 describe('/bridge/build', 'post', 'Build transaction',
   'Turn a quote into the unsigned transactions a wallet signs. Pass `quoteId` to build a row other than `best`. `steps` is every transaction to sign, in order; only `main` moves the order. A deposit-address venue returns `deposit` instead of `steps`. `expectedOutAtomic` equals the `amountOutAtomic` of the row you built. Idempotent per `decisionId`.');
 describe('/bridge/transfers/{id}/submit', 'post', 'Submit transaction',
-  'Hand back the signed transaction for Bridg to broadcast, or the hash of one your wallet already sent. Exactly one of `signedTransaction` and `txHash`. The transaction is decoded and compared to the steps that were built; anything else is refused and nothing is broadcast. Idempotent: a repeat answers with the hash on record and `accepted: false`.');
+  'Hand back the signed transaction for BRDG to broadcast, or the hash of one your wallet already sent. Exactly one of `signedTransaction` and `txHash`. The transaction is decoded and compared to the steps that were built; anything else is refused and nothing is broadcast. Idempotent: a repeat answers with the hash on record and `accepted: false`.');
 describe('/bridge/transfers/{id}', 'get', 'Get transfer',
   'Read one transfer by id. Open to anyone holding the id. Poll until `status` is `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` or `ABANDONED`.');
 

@@ -4,23 +4,23 @@ description: A typed client for every endpoint. No runtime dependencies.
 ---
 
 ```bash
-npm install @kernlog/bridg-sdk
+npm install @kernlog/brdg-sdk
 ```
 
-Source and releases: [github.com/Kernlog/bridg-sdk](https://github.com/Kernlog/bridg-sdk). Node 18+ or any runtime with a global `fetch`. One method per endpoint, typed from the API's OpenAPI document, no runtime dependencies.
+Source and releases: [github.com/Kernlog/brdg-sdk](https://github.com/Kernlog/brdg-sdk). Node 18+ or any runtime with a global `fetch`. One method per endpoint, typed from the API's OpenAPI document, no runtime dependencies.
 
 ## Quote, build, sign, submit, track
 
 ```ts
-import { createClient } from '@kernlog/bridg-sdk';
+import { createClient } from '@kernlog/brdg-sdk';
 
-const bridg = createClient();
+const brdg = createClient();
 
 // Markets
-const { routes } = await bridg.getRoutes({ fromChain: 'base', toChain: 'solana' });
+const { routes } = await brdg.getRoutes({ fromChain: 'base', toChain: 'solana' });
 
 // Quote: 100 USDC on Base to USDC on Solana
-const quote = await bridg.getQuote({
+const quote = await brdg.getQuote({
   fromChain: 'base',
   toChain: 'solana',
   fromToken: 'USDC',
@@ -29,18 +29,18 @@ const quote = await bridg.getQuote({
   sender: '0xYourEvmWallet',
   recipient: 'YourSolanaWallet',
 });
-quote.best; // the row Bridg builds by default
+quote.best; // the row BRDG builds by default
 quote.bestByTime; // quoteId of the fastest executable row
 quote.quotes; // every venue that answered, best first
 
 // Build the unsigned steps. Pass quoteId to build another row.
-const build = await bridg.buildTransfer({ decisionId: quote.decisionId });
+const build = await brdg.buildTransfer({ decisionId: quote.decisionId });
 
 // Sign build.steps in order with your user's wallet, then report the hash
-await bridg.submitTransfer(build.transferId, { txHash: '0x…', step: 'main' });
+await brdg.submitTransfer(build.transferId, { txHash: '0x…', step: 'main' });
 
 // Track until terminal
-const transfer = await bridg.waitForTransfer(build.transferId, {
+const transfer = await brdg.waitForTransfer(build.transferId, {
   onUpdate: (t) => console.log(t.status),
 });
 ```
@@ -49,7 +49,7 @@ const transfer = await bridg.waitForTransfer(build.transferId, {
 
 ```ts
 createClient({
-  baseUrl: 'https://api.bridg.now/v1', // default
+  baseUrl: 'https://api.brdg.now/v1', // default
   headers: { 'x-integrator': 'my-app' },
   fetch: customFetch,
 });
@@ -57,15 +57,15 @@ createClient({
 
 ## Errors
 
-Every API error is a `BridgError` carrying the API's `code`, the HTTP `status`, `details` and, on `429`, `retryAfterMs`. Codes are listed on [Errors](/reference/errors).
+Every API error is a `BrdgError` carrying the API's `code`, the HTTP `status`, `details` and, on `429`, `retryAfterMs`. Codes are listed on [Errors](/reference/errors).
 
 ```ts
-import { isBridgError } from '@kernlog/bridg-sdk';
+import { isBrdgError } from '@kernlog/brdg-sdk';
 
 try {
-  await bridg.buildTransfer({ decisionId });
+  await brdg.buildTransfer({ decisionId });
 } catch (error) {
-  if (isBridgError(error) && error.code === 'quote_drifted') {
+  if (isBrdgError(error) && error.code === 'quote_drifted') {
     // re-quote and choose again
   }
 }
@@ -84,4 +84,4 @@ try {
 | `getTransfer(transferId)` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |
 | `waitForTransfer(transferId, options?)` | polls the transfer until it is terminal |
 
-Every request and response type is exported: `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/bridg-sdk'`.
+Every request and response type is exported: `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/brdg-sdk'`.

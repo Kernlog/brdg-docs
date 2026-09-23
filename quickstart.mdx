@@ -4,7 +4,7 @@ sidebarTitle: Quickstart
 description: Discover markets, quote a transfer, build the transaction and track it.
 ---
 
-Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic units (`100000000` is 100 USDC). Every call below is also one method on the [TypeScript SDK](/sdk).
+Base URL: `https://api.brdg.now/v1`. No API key. Amounts are strings in atomic units (`100000000` is 100 USDC). Every call below is also one method on the [TypeScript SDK](/sdk).
 
 <Steps>
   <Step title="Discover markets">
@@ -12,19 +12,19 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
 
     <CodeGroup>
     ```bash curl
-    curl https://api.bridg.now/v1/bridge/source-chains
-    curl "https://api.bridg.now/v1/bridge/routes?fromChain=base&toChain=solana"
+    curl https://api.brdg.now/v1/bridge/source-chains
+    curl "https://api.brdg.now/v1/bridge/routes?fromChain=base&toChain=solana"
     ```
     ```javascript JavaScript
-    const api = 'https://api.bridg.now/v1';
+    const api = 'https://api.brdg.now/v1';
     const { chains } = await (await fetch(`${api}/bridge/source-chains`)).json();
     const { routes } = await (await fetch(`${api}/bridge/routes?fromChain=base&toChain=solana`)).json();
     ```
     ```typescript SDK
-    import { createClient } from '@kernlog/bridg-sdk';
-    const bridg = createClient();
-    const { chains } = await bridg.getSourceChains();
-    const { routes } = await bridg.getRoutes({ fromChain: 'base', toChain: 'solana' });
+    import { createClient } from '@kernlog/brdg-sdk';
+    const brdg = createClient();
+    const { chains } = await brdg.getSourceChains();
+    const { routes } = await brdg.getRoutes({ fromChain: 'base', toChain: 'solana' });
     ```
     </CodeGroup>
 
@@ -49,7 +49,7 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
 
     <CodeGroup>
     ```bash curl
-    curl https://api.bridg.now/v1/bridge/quote \
+    curl https://api.brdg.now/v1/bridge/quote \
       -H 'content-type: application/json' \
       -d '{
         "fromChain": "base",
@@ -75,7 +75,7 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
     })).json();
     ```
     ```typescript SDK
-    const quote = await bridg.getQuote({
+    const quote = await brdg.getQuote({
       fromChain: 'base', toChain: 'solana',
       fromToken: 'USDC', toToken: 'USDC',
       amountAtomic: '100000000',
@@ -128,7 +128,7 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
 
     | Field | Meaning |
     | --- | --- |
-    | `best` | The row Bridg builds by default: highest net output among rows a wallet can sign. |
+    | `best` | The row BRDG builds by default: highest net output among rows a wallet can sign. |
     | `bestByPrice` | `best`'s `quoteId`. |
     | `bestByTime` | The `quoteId` of the fastest executable row. `null` when no row publishes an ETA. |
     | `quotes` | Every venue that answered, best first. Each row carries its own output, floor, fees and ETA. |
@@ -142,7 +142,7 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
 
     <CodeGroup>
     ```bash curl
-    curl https://api.bridg.now/v1/bridge/build \
+    curl https://api.brdg.now/v1/bridge/build \
       -H 'content-type: application/json' \
       -d '{ "decisionId": "fb0798dc-97d2-41f2-8786-ace0b1c40722" }'
     ```
@@ -154,7 +154,7 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
     })).json();
     ```
     ```typescript SDK
-    const build = await bridg.buildTransfer({ decisionId: quote.decisionId });
+    const build = await brdg.buildTransfer({ decisionId: quote.decisionId });
     ```
     </CodeGroup>
 
@@ -181,21 +181,21 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
   <Step title="Sign and submit">
     Sign each step with your user's wallet. On EVM, supply nonce and gas yourself. On Solana, sign `serializedTx` without rebuilding it.
 
-    Then either hand back the signed bytes for Bridg to broadcast, or report the hash of a transaction the wallet already sent:
+    Then either hand back the signed bytes for BRDG to broadcast, or report the hash of a transaction the wallet already sent:
 
     <CodeGroup>
     ```bash Report a hash
-    curl https://api.bridg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281/submit \
+    curl https://api.brdg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281/submit \
       -H 'content-type: application/json' \
       -d '{ "txHash": "0xabab…", "step": "main" }'
     ```
-    ```bash Bridg broadcasts
-    curl https://api.bridg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281/submit \
+    ```bash BRDG broadcasts
+    curl https://api.brdg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281/submit \
       -H 'content-type: application/json' \
       -d '{ "signedTransaction": "0x02f8b1…", "step": "main" }'
     ```
     ```typescript SDK
-    await bridg.submitTransfer(build.transferId, { txHash: '0xabab…', step: 'main' });
+    await brdg.submitTransfer(build.transferId, { txHash: '0xabab…', step: 'main' });
     ```
     </CodeGroup>
 
@@ -205,10 +205,10 @@ Base URL: `https://api.bridg.now/v1`. No API key. Amounts are strings in atomic 
   <Step title="Track">
     <CodeGroup>
     ```bash curl
-    curl https://api.bridg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281
+    curl https://api.brdg.now/v1/bridge/transfers/ca0e5dee-be62-4a8d-aab9-3c8762b29281
     ```
     ```typescript SDK
-    const transfer = await bridg.waitForTransfer(build.transferId, { onUpdate: (t) => console.log(t.status) });
+    const transfer = await brdg.waitForTransfer(build.transferId, { onUpdate: (t) => console.log(t.status) });
     ```
     </CodeGroup>
 

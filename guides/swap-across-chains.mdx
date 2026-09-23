@@ -12,17 +12,17 @@ description: Send SOL on Solana and receive USDC on Base, choosing the fastest r
 
 ```typescript src/swap-across-chains.ts
 import 'dotenv/config';
-import { createClient } from '@kernlog/bridg-sdk';
+import { createClient } from '@kernlog/brdg-sdk';
 import { Connection, Keypair, VersionedTransaction } from '@solana/web3.js';
 import bs58 from 'bs58';
 
 const keypair = Keypair.fromSecretKey(bs58.decode(process.env.SOLANA_PRIVATE_KEY!));
 const connection = new Connection(process.env.SOLANA_RPC_URL!);
-const bridg = createClient();
+const brdg = createClient();
 
 async function main() {
   // 1. Quote: 0.5 SOL to USDC on Base
-  const quote = await bridg.getQuote({
+  const quote = await brdg.getQuote({
     fromChain: 'solana',
     toChain: 'base',
     fromToken: null, // null is the chain's native asset
@@ -39,9 +39,9 @@ async function main() {
   console.log(`${row.venue}: ${row.amountOutAtomic} USDC in ~${row.estimatedSeconds}s`);
 
   // 3. Build that row
-  const build = await bridg.buildTransfer({ decisionId: quote.decisionId, quoteId });
+  const build = await brdg.buildTransfer({ decisionId: quote.decisionId, quoteId });
 
-  // 4. Sign the Solana transaction as built. Do not rebuild it: the message bytes are what Bridg verifies.
+  // 4. Sign the Solana transaction as built. Do not rebuild it: the message bytes are what BRDG verifies.
   const step = build.steps.find((s) => s.step === 'main');
   if (!step || step.vm !== 'svm') throw new Error('expected a Solana main step');
   const tx = VersionedTransaction.deserialize(
@@ -51,8 +51,8 @@ async function main() {
   const signature = await connection.sendRawTransaction(tx.serialize());
 
   // 5. Report the signature and wait
-  await bridg.submitTransfer(build.transferId, { txHash: signature, step: 'main' });
-  const transfer = await bridg.waitForTransfer(build.transferId);
+  await brdg.submitTransfer(build.transferId, { txHash: signature, step: 'main' });
+  const transfer = await brdg.waitForTransfer(build.transferId);
   console.log(transfer.status, transfer.receivedAmountAtomic);
 }
 
@@ -62,7 +62,7 @@ main().catch((e) => { console.error(e); process.exit(1); });
 ## Notes
 
 - `fromToken: null` or `toToken: null` means the chain's native asset. Symbols and addresses are both accepted.
-- A wallet may add its own compute-budget instructions; every instruction Bridg built must stay byte-identical.
+- A wallet may add its own compute-budget instructions; every instruction BRDG built must stay byte-identical.
 - The Solana step carries `refreshBlockhash`; when it is `true`, fetch a fresh blockhash and set it on the message before signing.
 
 ## Endpoints used

@@ -6,9 +6,9 @@ description: The project every guide here starts from.
 <Steps>
   <Step title="Create the project">
     ```bash
-    mkdir bridg-app && cd bridg-app
+    mkdir brdg-app && cd brdg-app
     npm init -y
-    npm install @kernlog/bridg-sdk viem dotenv
+    npm install @kernlog/brdg-sdk viem dotenv
     npm install -D typescript tsx @types/node
     npx tsc --init
     ```
@@ -21,17 +21,17 @@ description: The project every guide here starts from.
     EVM_RPC_URL=https://mainnet.base.org
     ```
 
-    Bridg itself needs no key. The private key is only for signing the transactions Bridg builds; never commit it.
+    BRDG itself needs no key. The private key is only for signing the transactions BRDG builds; never commit it.
   </Step>
   <Step title="Create the client and a signer">
     ```typescript src/evm.ts
     import 'dotenv/config';
-    import { createClient, type BuildStep } from '@kernlog/bridg-sdk';
+    import { createClient, type BuildStep } from '@kernlog/brdg-sdk';
     import { createPublicClient, createWalletClient, http, type Hex } from 'viem';
     import { privateKeyToAccount } from 'viem/accounts';
     import { base } from 'viem/chains';
 
-    export const bridg = createClient();
+    export const brdg = createClient();
     export const account = privateKeyToAccount(process.env.EVM_PRIVATE_KEY as Hex);
 
     const wallet = createWalletClient({ account, chain: base, transport: http(process.env.EVM_RPC_URL) });
@@ -50,8 +50,8 @@ description: The project every guide here starts from.
     }
     ```
 
-    Bridg returns unsigned steps; this is the only place a key is used. Run any script with `npx tsx src/<file>.ts`.
+    BRDG returns unsigned steps; this is the only place a key is used. Run any script with `npx tsx src/<file>.ts`.
   </Step>
 </Steps>
 
-The SDK ships ESM and CommonJS with type declarations. Every type used in the guides is exported: `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/bridg-sdk'`.
+The SDK ships ESM and CommonJS with type declarations. Every type used in the guides is exported: `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/brdg-sdk'`.

@@ -1,8 +1,8 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Bridg",
-  "description": "Bridg prices a cross-chain transfer across every bridge that serves it, ranks the results by what lands, and returns the transaction you sign.",
+  "name": "BRDG",
+  "description": "BRDG prices a cross-chain transfer across every bridge that serves it, ranks the results by what lands, and returns the transaction you sign.",
   "colors": {
     "primary": "#7fb800",
     "light": "#c8f542",
@@ -11,7 +11,7 @@
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg",
-    "href": "https://bridg.now"
+    "href": "https://brdg.now"
   },
   "favicon": "/favicon.svg",
   "appearance": {
@@ -47,8 +47,8 @@
   "navbar": {
     "links": [
       {
-        "label": "Open Bridg",
-        "href": "https://bridg.now"
+        "label": "Open BRDG",
+        "href": "https://brdg.now"
       }
     ],
     "primary": {
@@ -137,7 +137,7 @@
   },
   "footer": {
     "socials": {
-      "website": "https://bridg.now"
+      "website": "https://brdg.now"
     }
   },
   "contextual": {

@@ -27,7 +27,7 @@ description: One envelope on every route. Branch on the code.
 | `execution_disabled` | 409 | Execution is switched off. Quoting still serves. |
 | `tx_not_found` | 409 | The hash is not visible yet. Retry with the same hash. |
 | `tx_reverted` | 409 | It matched a built step and reverted. Sign again. |
-| `tx_mismatch` | 409 | That hash is on chain and is not a step Bridg built. Do not sign again. |
+| `tx_mismatch` | 409 | That hash is on chain and is not a step BRDG built. Do not sign again. |
 | `tx_hash_already_claimed` | 409 | Another order already holds that transaction. |
 | `user_ip_mismatch` | 409 | A different end user than the venue created the order for. |
 | `rate_limited` | 429 | Wait `retryAfterMs`. |

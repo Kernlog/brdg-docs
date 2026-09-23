@@ -1,13 +1,13 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Bridg API",
+    "title": "BRDG API",
     "version": "1.0.0",
-    "description": "Quote, build, submit and track cross-chain transfers across every venue Bridg aggregates."
+    "description": "Quote, build, submit and track cross-chain transfers across every venue BRDG aggregates."
   },
   "servers": [
     {
-      "url": "https://api.bridg.now/v1"
+      "url": "https://api.brdg.now/v1"
     }
   ],
   "components": {
@@ -3112,7 +3112,7 @@
     "/bridge/transfers/{id}/submit": {
       "post": {
         "summary": "Submit transaction",
-        "description": "Hand back the signed transaction for Bridg to broadcast, or the hash of one your wallet already sent. Exactly one of `signedTransaction` and `txHash`. The transaction is decoded and compared to the steps that were built; anything else is refused and nothing is broadcast. Idempotent: a repeat answers with the hash on record and `accepted: false`.",
+        "description": "Hand back the signed transaction for BRDG to broadcast, or the hash of one your wallet already sent. Exactly one of `signedTransaction` and `txHash`. The transaction is decoded and compared to the steps that were built; anything else is refused and nothing is broadcast. Idempotent: a repeat answers with the hash on record and `accepted: false`.",
         "tags": [
           "bridge"
         ],
@@ -4111,7 +4111,7 @@
     "/bridge/venues": {
       "get": {
         "summary": "Get venues",
-        "description": "Every venue Bridg quotes: whether it is on, its health, and its capabilities: which trade types it prices, how its quote is executed, whether it needs `userIp`, and its privacy model.",
+        "description": "Every venue BRDG quotes: whether it is on, its health, and its capabilities: which trade types it prices, how its quote is executed, whether it needs `userIp`, and its privacy model.",
         "tags": [
           "bridge"
         ],
@@ -4586,13 +4586,13 @@
                     {
                       "venue": "garden",
                       "routable": false,
-                      "notRoutableReason": "HTLC atomic swaps whose destination redeem leg has no owner here, on a venue that prices none of our corridors - every pair we carry is an unregistered order pair",
+                      "notRoutableReason": "HTLC atomic swaps whose destination redeem leg has no owner here, on a venue that prices none of our corridors: every pair we carry is an unregistered order pair",
                       "enabled": false,
                       "registered": true,
                       "snapshotFresh": false,
                       "snapshotAgeMs": null,
                       "health": "unknown",
-                      "reason": "HTLC atomic swaps whose destination redeem leg has no owner here, on a venue that prices none of our corridors - every pair we carry is an unregistered order pair",
+                      "reason": "HTLC atomic swaps whose destination redeem leg has no owner here, on a venue that prices none of our corridors: every pair we carry is an unregistered order pair",
                       "capabilities": {
                         "archetype": "intent",
                         "tradeTypes": [

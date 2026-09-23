@@ -11,14 +11,14 @@ description: Restrict a transfer to venues that do not publish the link between 
 ## Script
 
 ```typescript src/bridge-privately.ts
-import { bridg, signEvmStep, account } from './evm';
+import { brdg, signEvmStep, account } from './evm';
 
 async function main() {
   // Which private venues serve the corridor at all
-  const { routes } = await bridg.getRoutes({ fromChain: 'base', toChain: 'arbitrum', privacy: true });
+  const { routes } = await brdg.getRoutes({ fromChain: 'base', toChain: 'arbitrum', privacy: true });
   if (routes.length === 0) throw new Error('no private route on this corridor');
 
-  const quote = await bridg.getQuote({
+  const quote = await brdg.getQuote({
     fromChain: 'base',
     toChain: 'arbitrum',
     fromToken: 'USDC',
@@ -33,7 +33,7 @@ async function main() {
   console.log(`${quote.best.venue}: ${quote.best.amountOutAtomic} in ~${quote.best.estimatedSeconds}s`);
 
   // privacy is carried on the quote; passing it again on build is optional
-  const build = await bridg.buildTransfer({ decisionId: quote.decisionId, privacy: true });
+  const build = await brdg.buildTransfer({ decisionId: quote.decisionId, privacy: true });
 
   // A deposit-address venue returns `deposit` instead of `steps`: send exactly that amount to that address.
   if (build.deposit) {

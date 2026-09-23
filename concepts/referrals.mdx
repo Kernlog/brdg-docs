@@ -12,7 +12,7 @@ description: Take a share of the volume you send. Two fields on the quote, no si
 
 Both or neither. They go on `POST /bridge/quote` and follow the decision through `POST /bridge/build`.
 
-Your share is charged on every transfer you refer, including one on which Bridg itself charges nothing, and is capped at **$10** per transfer, converted into the source asset at Bridg's price for it. The platform's own $10 cap is separate. `fees.referral.amountAtomic` is the capped amount.
+Your share is charged on every transfer you refer, including one on which BRDG itself charges nothing, and is capped at **$10** per transfer, converted into the source asset at BRDG's price for it. The platform's own $10 cap is separate. `fees.referral.amountAtomic` is the capped amount.
 
 ```json
 {
@@ -45,7 +45,7 @@ The share is shown next to the platform fee, in the same asset, before signing:
 
 ## Settlement
 
-Your share is charged on top of the platform's and paid straight to your wallet in the same signature: an instruction inside the venue's Solana transaction, or a `fee` step beside the EVM bridge call. Nothing is forwarded later. The one case it is not taken is a source chain Bridg has no fee wallet on, where neither cut can be collected.
+Your share is charged on top of the platform's and paid straight to your wallet in the same signature: an instruction inside the venue's Solana transaction, or a `fee` step beside the EVM bridge call. Nothing is forwarded later. The one case it is not taken is a source chain BRDG has no fee wallet on, where neither cut can be collected.
 
 Each fee is a row in the transfer's `fees` list on `GET /bridge/transfers/{id}`:
 
