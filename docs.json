@@ -31,6 +31,9 @@
       "family": "Inter"
     }
   },
+  "styling": {
+    "latex": false
+  },
   "api": {
     "playground": {
       "display": "interactive"
