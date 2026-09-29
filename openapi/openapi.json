@@ -371,7 +371,7 @@
     "/bridge/quote": {
       "post": {
         "summary": "Get quote",
-        "description": "Price a transfer across every venue that serves it. `best` is the row `build` executes by default; `bestByPrice` and `bestByTime` name rows in `quotes` by `quoteId`; `rejected` lists venues that could not price it, with a reason. Every `amountOutAtomic` is already net of the platform fee. Send `sender`, and `recipient` when the destination uses a different address format. Send `userIp` when calling on behalf of your users. `indicative: true` is comparison pricing and cannot be built.",
+        "description": "Prices a transfer at every venue that serves it and ranks the results by net output. `best` is the quote that `POST /bridge/build` uses by default. `bestByPrice` and `bestByTime` hold the `quoteId` of the cheapest and fastest quotes in `quotes`. Venues that could not quote are listed in `rejected` with a reason. Every `amountOutAtomic` already has the platform fee taken off.\n\nSend `sender`, and send `recipient` when the destination chain uses a different address format. If you call the API from a server on behalf of your users, send each user's IP address as `userIp`. A quote requested with `indicative: true` is for display only and cannot be built.",
         "tags": [
           "bridge"
         ],
@@ -458,7 +458,8 @@
                       "cosmoshub",
                       "hypercore",
                       "lighter"
-                    ]
+                    ],
+                    "description": "Chain key the transfer starts from, for example `base`."
                   },
                   "toChain": {
                     "type": "string",
@@ -536,25 +537,29 @@
                       "cosmoshub",
                       "hypercore",
                       "lighter"
-                    ]
+                    ],
+                    "description": "Chain key the transfer ends on. Use `hypercore` for a Hyperliquid balance."
                   },
                   "fromToken": {
                     "type": "string",
                     "nullable": true,
                     "minLength": 1,
                     "maxLength": 128,
-                    "default": null
+                    "default": null,
+                    "description": "Token to send: a symbol such as `USDC`, a token address, or `null` for the chain's native token."
                   },
                   "toToken": {
                     "type": "string",
                     "nullable": true,
                     "minLength": 1,
                     "maxLength": 128,
-                    "default": null
+                    "default": null,
+                    "description": "Token to receive, in the same forms as `fromToken`. For Hyperliquid, `USDC (perps)` or `USDC (spot)`."
                   },
                   "amountAtomic": {
                     "type": "string",
-                    "pattern": "^[1-9][0-9]{0,77}$"
+                    "pattern": "^[1-9][0-9]{0,77}$",
+                    "description": "Amount in the token's smallest unit, as a string. With `MIN_OUT` or `EXACT_OUT` it is an amount of `toToken`."
                   },
                   "tradeType": {
                     "type": "string",
@@ -563,46 +568,55 @@
                       "MIN_OUT",
                       "EXACT_OUT"
                     ],
-                    "default": "EXACT_IN"
+                    "default": "EXACT_IN",
+                    "description": "`EXACT_IN` (the default) fixes the amount sent. `EXACT_OUT` fixes the amount received. `MIN_OUT` sets the least that must be received."
                   },
                   "slippageBps": {
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 5000,
-                    "default": 100
+                    "default": 100,
+                    "description": "Maximum slippage you accept, in basis points, from 0 to 5000. Defaults to 100 (1%)."
                   },
                   "sender": {
                     "type": "string",
                     "minLength": 26,
-                    "maxLength": 600
+                    "maxLength": 600,
+                    "description": "Wallet the funds leave from."
                   },
                   "recipient": {
                     "type": "string",
                     "minLength": 26,
-                    "maxLength": 600
+                    "maxLength": 600,
+                    "description": "Wallet that receives the funds. Required when the destination uses a different address format from the source. Defaults to `sender`."
                   },
                   "refundAddress": {
                     "type": "string",
                     "minLength": 26,
-                    "maxLength": 600
+                    "maxLength": 600,
+                    "description": "Where a venue sends a refund. Defaults to `sender`."
                   },
                   "indicative": {
                     "type": "boolean",
-                    "default": false
+                    "default": false,
+                    "description": "Set to `true` for a display-only price. An indicative quote cannot be built."
                   },
                   "referralWallet": {
                     "type": "string",
                     "minLength": 26,
-                    "maxLength": 600
+                    "maxLength": 600,
+                    "description": "Wallet that receives your referral share. Must be valid on the source chain. Send together with `referralBps`."
                   },
                   "referralBps": {
                     "type": "integer",
                     "minimum": 0,
-                    "maximum": 15
+                    "maximum": 15,
+                    "description": "Your referral rate in basis points, from 0 to 15."
                   },
                   "privacy": {
                     "type": "boolean",
-                    "default": false
+                    "default": false,
+                    "description": "Set to `true` to use only venues that do not publish the link between sender and recipient."
                   },
                   "autoTwapOptOut": {
                     "type": "boolean",
@@ -618,7 +632,8 @@
                         "type": "string",
                         "format": "ip"
                       }
-                    ]
+                    ],
+                    "description": "The end user's IP address, when you call the API from a server on their behalf."
                   }
                 },
                 "required": [
@@ -2246,7 +2261,7 @@
     "/bridge/build": {
       "post": {
         "summary": "Build transaction",
-        "description": "Turn a quote into the unsigned transactions a wallet signs. Pass `quoteId` to build a row other than `best`. `steps` is every transaction to sign, in order; only `main` moves the order. A deposit-address venue returns `deposit` instead of `steps`. `expectedOutAtomic` equals the `amountOutAtomic` of the row you built. Idempotent per `decisionId`.",
+        "description": "Turns a quote into the unsigned transactions the user signs. BRDG builds `best` unless you pass a `quoteId`. `steps` lists every transaction to sign, in order; the one with `step: \"main\"` is the bridge transaction. On a source chain no wallet can sign for, `steps` is empty and `deposit` says where to send the funds instead. `expectedOutAtomic` matches the `amountOutAtomic` of the quote you built. Building the same `decisionId` again returns the same transfer.",
         "tags": [
           "bridge"
         ],
@@ -2259,21 +2274,25 @@
                 "properties": {
                   "decisionId": {
                     "type": "string",
-                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    "description": "The `decisionId` from the quote response."
                   },
                   "venue": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 40
+                    "maxLength": 40,
+                    "description": "Build this venue's quote instead of `best`."
                   },
                   "quoteId": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 200
+                    "maxLength": 200,
+                    "description": "Build this quote instead of `best`. Must be a `quoteId` from the same quote response."
                   },
                   "privacy": {
                     "type": "boolean",
-                    "default": false
+                    "default": false,
+                    "description": "Optional. Privacy already carries over from the quote."
                   },
                   "userIp": {
                     "anyOf": [
@@ -2285,7 +2304,8 @@
                         "type": "string",
                         "format": "ip"
                       }
-                    ]
+                    ],
+                    "description": "Optional. `userIp` already carries over from the quote."
                   }
                 },
                 "required": [
@@ -2307,7 +2327,8 @@
                   "type": "object",
                   "properties": {
                     "transferId": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Id of the transfer. Use it to submit and to track."
                     },
                     "venue": {
                       "type": "string"
@@ -2696,7 +2717,8 @@
                             ]
                           }
                         ]
-                      }
+                      },
+                      "description": "Transactions to sign, in order."
                     },
                     "deposit": {
                       "type": "object",
@@ -2727,19 +2749,23 @@
                         "deadlineMs",
                         "tokenAddress",
                         "chainKey"
-                      ]
+                      ],
+                      "description": "Set only when `steps` is empty: send exactly `amountAtomic` to `address` before `deadlineMs`."
                     },
                     "expiresAt": {
-                      "type": "integer"
+                      "type": "integer",
+                      "description": "Unix time in milliseconds after which these steps can no longer be submitted."
                     },
                     "amountInAtomic": {
                       "type": "string"
                     },
                     "expectedOutAtomic": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Amount expected to arrive. Matches the quoted `amountOutAtomic`."
                     },
                     "minOutAtomic": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "The least the transfer can deliver."
                     },
                     "feeCapture": {
                       "type": "string",
@@ -2749,7 +2775,8 @@
                         "separate-step",
                         "batch",
                         "none"
-                      ]
+                      ],
+                      "description": "How the platform fee is collected. See the Fees page."
                     },
                     "referralCapture": {
                       "type": "string",
@@ -2784,7 +2811,8 @@
                       "required": [
                         "chainId",
                         "stepIndexes"
-                      ]
+                      ],
+                      "description": "The steps a wallet with EIP-5792 batching can sign as one bundle."
                     },
                     "requoted": {
                       "type": "boolean"
@@ -3112,7 +3140,7 @@
     "/bridge/transfers/{id}/submit": {
       "post": {
         "summary": "Submit transaction",
-        "description": "Hand back the signed transaction for BRDG to broadcast, or the hash of one your wallet already sent. Exactly one of `signedTransaction` and `txHash`. The transaction is decoded and compared to the steps that were built; anything else is refused and nothing is broadcast. Idempotent: a repeat answers with the hash on record and `accepted: false`.",
+        "description": "Accepts either a signed transaction for BRDG to broadcast (`signedTransaction`) or the hash of a transaction the wallet already sent (`txHash`). Send exactly one. BRDG decodes the transaction and compares it with the steps it built, and refuses anything that does not match without broadcasting it. Submitting the same transaction again returns the hash on record with `accepted: false`.",
         "tags": [
           "bridge"
         ],
@@ -3137,12 +3165,14 @@
                   "signedTransaction": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 100000
+                    "maxLength": 100000,
+                    "description": "The signed transaction, for BRDG to broadcast. Send this or `txHash`."
                   },
                   "txHash": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 128
+                    "maxLength": 128,
+                    "description": "The hash or signature of a transaction the wallet already sent. Send this or `signedTransaction`."
                   },
                   "step": {
                     "type": "string",
@@ -3151,7 +3181,8 @@
                       "fee",
                       "main",
                       "redeem"
-                    ]
+                    ],
+                    "description": "Which built step this transaction is. Usually `main`."
                   },
                   "userIp": {
                     "anyOf": [
@@ -3163,7 +3194,8 @@
                         "type": "string",
                         "format": "ip"
                       }
-                    ]
+                    ],
+                    "description": "The end user's IP address, if the quote carried one."
                   }
                 }
               }
@@ -3426,7 +3458,7 @@
     "/bridge/transfers/{id}": {
       "get": {
         "summary": "Get transfer",
-        "description": "Read one transfer by id. Open to anyone holding the id. Poll until `status` is `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` or `ABANDONED`.",
+        "description": "Returns one transfer. Anyone with the transfer id can read it. Poll until `status` is `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` or `ABANDONED`.",
         "tags": [
           "bridge"
         ],
@@ -3453,11 +3485,13 @@
                       "type": "string"
                     },
                     "status": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Current status. See the Track a transfer guide."
                     },
                     "statusDetail": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "description": "Explanation of the current status, when there is one."
                     },
                     "venue": {
                       "type": "string"
@@ -3487,15 +3521,18 @@
                     },
                     "receivedAmountAtomic": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "description": "Amount that actually arrived."
                     },
                     "receivedAsset": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "description": "Token that actually arrived."
                     },
                     "sourceTxHash": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "description": "The source chain transaction."
                     },
                     "sourceTxVerification": {
                       "type": "string",
@@ -3511,11 +3548,127 @@
                     },
                     "destinationTxHash": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "description": "The transaction that delivered the funds, when the venue reports one."
                     },
                     "feeTxHash": {
                       "type": "string",
                       "nullable": true
+                    },
+                    "venueExplorerUrl": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "venueSupportUrl": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "venueReference": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "venueQuoteId": {
+                      "type": "string"
+                    },
+                    "venueSupport": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "channels": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "discord",
+                                  "telegram",
+                                  "email",
+                                  "form",
+                                  "chat",
+                                  "helpcenter"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "url": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "label",
+                              "url"
+                            ]
+                          }
+                        },
+                        "asks": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "note": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "ids": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "value"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "displayName",
+                        "channels",
+                        "asks",
+                        "note",
+                        "ids"
+                      ]
+                    },
+                    "outcome": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "delivered",
+                        "refunded",
+                        "pending_refund",
+                        "held_by_venue",
+                        null
+                      ]
+                    },
+                    "refundTxHash": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "refundAmountAtomic": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "refundTiming": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "refundDetectedOnChain": {
+                      "type": "boolean"
                     },
                     "claim": {
                       "type": "object",
@@ -3646,7 +3799,8 @@
                         "spotTxHash",
                         "spotMovedAt",
                         "relayGas"
-                      ]
+                      ],
+                      "description": "Set on Hyperliquid deposits through Arbitrum. Reports the Hyperliquid credit."
                     },
                     "finalDestination": {
                       "type": "object",
@@ -3758,7 +3912,8 @@
                           "tierSavedBps",
                           "txHash"
                         ]
-                      }
+                      },
+                      "description": "Each fee on this transfer, with its status."
                     },
                     "privacy": {
                       "type": "boolean"
@@ -3838,6 +3993,16 @@
                     "sourceTxVerification",
                     "destinationTxHash",
                     "feeTxHash",
+                    "venueExplorerUrl",
+                    "venueSupportUrl",
+                    "venueReference",
+                    "venueQuoteId",
+                    "venueSupport",
+                    "outcome",
+                    "refundTxHash",
+                    "refundAmountAtomic",
+                    "refundTiming",
+                    "refundDetectedOnChain",
                     "claim",
                     "postStep",
                     "finalDestination",
@@ -4111,7 +4276,7 @@
     "/bridge/venues": {
       "get": {
         "summary": "Get venues",
-        "description": "Every venue BRDG quotes: whether it is on, its health, and its capabilities: which trade types it prices, how its quote is executed, whether it needs `userIp`, and its privacy model.",
+        "description": "Returns every venue BRDG integrates: whether it is enabled, its health, and its capabilities, including the trade types it supports, what it gives a wallet to sign, whether it needs `userIp`, and its privacy model.",
         "tags": [
           "bridge"
         ],
@@ -5368,7 +5533,7 @@
         "tags": [
           "bridge"
         ],
-        "description": "Which venues serve a corridor, and with which assets. `tokenSymbols` is capped; `tokenSymbolCount` is exact. `privacy=true` narrows to venues a private transfer may use. The response carries `Cache-Control: max-age=30` and an `ETag`.",
+        "description": "Returns the venues that serve a route and the tokens each supports on it. `tokenSymbols` is a sample and `tokenSymbolCount` is the full count. Pass `privacy=true` to list only venues that can carry a private transfer. Responses are cacheable for 30 seconds and carry an `ETag`.",
         "parameters": [
           {
             "schema": {
@@ -6263,7 +6428,7 @@
     "/bridge/source-chains": {
       "get": {
         "summary": "Get source chains",
-        "description": "Every chain a transfer can start from right now, with how many venues accept it as an origin. Cache it; it changes when a venue adds or drops a chain.",
+        "description": "Returns every chain a transfer can start from right now, with the number of venues that accept it as a source. The list changes only when a venue adds or drops a chain, so you can cache it.",
         "tags": [
           "bridge"
         ],
