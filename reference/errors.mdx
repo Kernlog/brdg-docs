@@ -20,7 +20,23 @@ Errors are returned with an HTTP status and a JSON body. Branch on `code`, which
 
 `details` is included when there is something to act on, such as the quoted and current amounts of a drifted quote. `retryAfterMs` is included on `429` responses.
 
-A request body that fails schema validation, such as a missing field or an unknown chain key, returns `400` with a different body: `error.name` is `"ZodError"` and `error.message` is a JSON string listing each problem and its field path. It has no `code`, so the SDK reports it as a `BrdgError` with the code `unknown`.
+A request that fails validation, such as a missing field or an unknown chain key, returns `400` with the code `invalid_request`. `details.issues` lists each problem: `in` is where it was (`json`, `query` or `param`), `path` is the field, and `message` says what is wrong.
+
+```json
+{
+  "error": {
+    "code": "invalid_request",
+    "message": "Invalid request: amountAtomic: Invalid input: expected string, received undefined",
+    "details": {
+      "issues": [
+        { "in": "json", "path": "amountAtomic", "message": "Invalid input: expected string, received undefined" }
+      ]
+    }
+  }
+}
+```
+
+A body that is not valid JSON gets the same response.
 
 ## Error codes
 
