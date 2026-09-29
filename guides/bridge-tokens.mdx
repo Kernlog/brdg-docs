@@ -1,16 +1,16 @@
 ---
 title: Bridge tokens
-description: "Move USDC from Base to Arbitrum: quote, build, sign with viem, submit, wait."
+description: Move USDC from Base to Arbitrum, from quote to delivery.
 ---
 
-## Prerequisites
+## Before you start
 
 - The [TypeScript project](/guides/typescript-setup), which provides `src/evm.ts`.
-- A Base wallet holding USDC and ETH for gas.
+- A Base wallet with some USDC, and ETH to pay for gas.
 
 ## Script
 
-Save as `src/bridge-tokens.ts` and run with `npx tsx src/bridge-tokens.ts`.
+This script sends 25 USDC from Base to the same wallet on Arbitrum. Save it as `src/bridge-tokens.ts` and run `npx tsx src/bridge-tokens.ts`.
 
 ```typescript src/bridge-tokens.ts
 import { isBrdgError } from '@kernlog/brdg-sdk';
@@ -31,10 +31,10 @@ async function main() {
   if (!quote.best) throw new Error(`no executable route: ${quote.rejected.map((r) => r.code).join(', ')}`);
   console.log(`${quote.best.venue} delivers ${quote.best.amountOutAtomic} in ~${quote.best.estimatedSeconds}s`);
 
-  // 2. Build the winner
+  // 2. Build the best quote
   const build = await brdg.buildTransfer({ decisionId: quote.decisionId });
 
-  // 3. Sign every step in order. Only `main` moves the order; the others are approvals and the fee.
+  // 3. Sign every step in order. `main` is the bridge transaction; any others are an approval or the fee.
   let mainHash: Hex | undefined;
   for (const step of build.steps) {
     const hash = await signEvmStep(step);
@@ -42,7 +42,7 @@ async function main() {
   }
   if (!mainHash) throw new Error('build carried no main step');
 
-  // 4. Report the hash
+  // 4. Report the bridge transaction's hash
   await brdg.submitTransfer(build.transferId, { txHash: mainHash, step: 'main' });
 
   // 5. Wait for delivery
@@ -61,9 +61,9 @@ main().catch((error) => {
 
 ## Notes
 
-- Wallets that support EIP-5792 batching can sign the `fee` and `main` steps as one bundle; `build.feeBatch` names the steps. Sequential signing, as above, is always correct.
-- `expectedOutAtomic` on the build equals the `amountOutAtomic` you were quoted.
-- A `quote_drifted` or `quote_expired` error on build means the price moved. Quote again.
+- Signing the steps one at a time, as above, always works. A wallet that supports EIP-5792 batching can instead sign the steps listed in `build.feeBatch` as one bundle.
+- `build.expectedOutAtomic` matches the `amountOutAtomic` you were quoted.
+- If the build fails with `quote_drifted` or `quote_expired`, the price has moved or the quote is too old. Get a new quote.
 
 ## Endpoints used
 

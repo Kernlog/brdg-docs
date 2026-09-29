@@ -1,7 +1,9 @@
 ---
 title: Set up a TypeScript project
-description: The project every guide here starts from.
+description: The small TypeScript project that every guide builds on.
 ---
+
+Every guide in this section is a script in the same small project. Set it up once.
 
 <Steps>
   <Step title="Create the project">
@@ -13,17 +15,19 @@ description: The project every guide here starts from.
     npx tsc --init
     ```
 
-    `viem` signs on EVM chains. Guides that start from Solana add `@solana/web3.js` and `bs58`.
+    `viem` signs EVM transactions. The Solana guide also needs `@solana/web3.js` and `bs58`.
   </Step>
-  <Step title="Add a .env">
+  <Step title="Add your keys">
     ```bash .env
     EVM_PRIVATE_KEY=0x…
     EVM_RPC_URL=https://mainnet.base.org
     ```
 
-    BRDG itself needs no key. The private key is only for signing the transactions BRDG builds; never commit it.
+    BRDG needs no API key. The private key signs the transactions BRDG builds, on your machine. Keep it out of version control.
   </Step>
   <Step title="Create the client and a signer">
+    This file creates the BRDG client and a helper that signs one EVM step on Base.
+
     ```typescript src/evm.ts
     import 'dotenv/config';
     import { createClient, type BuildStep } from '@kernlog/brdg-sdk';
@@ -40,6 +44,7 @@ description: The project every guide here starts from.
     /** Sign one EVM step from a build and wait for it to be mined. */
     export async function signEvmStep(step: BuildStep): Promise<Hex> {
       if (step.vm !== 'evm') throw new Error(`expected an EVM step, got ${step.vm}`);
+      if (step.chainId !== base.id) throw new Error(`this signer is set up for Base, not chain ${step.chainId}`);
       const hash = await wallet.sendTransaction({
         to: step.to as Hex,
         data: step.data as Hex,
@@ -50,8 +55,8 @@ description: The project every guide here starts from.
     }
     ```
 
-    BRDG returns unsigned steps; this is the only place a key is used. Run any script with `npx tsx src/<file>.ts`.
+    This is the only place a private key is used. Run any guide with `npx tsx src/<file>.ts`.
   </Step>
 </Steps>
 
-The SDK ships ESM and CommonJS with type declarations. Every type used in the guides is exported: `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/brdg-sdk'`.
+Every type the guides use is exported from the SDK, for example `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/brdg-sdk'`.

@@ -1,55 +1,55 @@
 ---
 title: What is BRDG
 sidebarTitle: What is BRDG
-description: A cross-chain bridge aggregator that prices every venue on a route, ranks by what lands, and returns the transaction you sign.
+description: A cross-chain bridge aggregator. One request prices a transfer at every bridge that serves it and returns the transaction your user signs.
 ---
 
-BRDG is a cross-chain bridge aggregator. One request prices a transfer across every bridge that serves the route, ranks the results by the amount that lands in the destination wallet, and returns the unsigned transaction for the best one. Your users sign from their own wallets. BRDG never holds funds or keys.
+BRDG is a cross-chain bridge aggregator. You send one quote request, BRDG asks every bridge that serves the route, ranks the answers by how much arrives in the destination wallet, and returns the unsigned transaction for the one you pick. Your users sign from their own wallets. BRDG never holds funds or keys.
 
-- 36 venues: intent bridges, liquidity pools, canonical rails, exchange desks and other aggregators.
-- 73 chains across EVM, Solana, Bitcoin-family, Tron, Move, Cosmos and more.
-- Ranking is on net output in the asset's own units, after every fee. No price feed decides a winner.
-- No platform fee unless the aggregation saved your user more than 10 bps. Never more than $10.
-- No API key and no account to quote, build or submit.
+- **36 venues**: intent bridges, liquidity pools, canonical bridges, exchange desks and other aggregators. See [Venues](/reference/venues).
+- **73 chains**, including EVM chains, Solana, Bitcoin and other UTXO chains, Tron, Move chains and Cosmos. See [Chains](/reference/chains).
+- **Ranked on what arrives.** Quotes are compared on net output in the token's own units, after every fee. No price feed decides the winner.
+- **Free unless BRDG saved your user money.** There is no platform fee unless the chosen route beat the alternatives by more than 10 bps, and the fee never exceeds \$10 a transfer. See [Fees](/concepts/fees).
+- **No API key and no account.** Quote, build and submit are open, subject to [rate limits](/api-reference/rate-limits).
+
+## Start integrating
+
+<Columns cols={2}>
+  <Card title="Quickstart" icon="bolt" href="/quickstart">
+    Find a route, get a quote and execute a transfer.
+  </Card>
+  <Card title="TypeScript SDK" icon="cube" href="/sdk">
+    `npm install @kernlog/brdg-sdk`, one typed method per endpoint.
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/overview">
+    Every endpoint, with examples and a playground.
+  </Card>
+  <Card title="Fees and referrals" icon="percent" href="/concepts/fees">
+    What a transfer costs, and how to earn on the volume you send.
+  </Card>
+</Columns>
 
 ## Guides
 
-Complete scripts on the TypeScript SDK, one per task.
+Each guide is a complete TypeScript script built on the SDK.
 
 <Columns cols={2}>
   <Card title="Bridge tokens" icon="arrow-right-arrow-left" href="/guides/bridge-tokens">
     Quote, build, sign with viem, submit and wait for delivery.
   </Card>
   <Card title="Swap across chains" icon="shuffle" href="/guides/swap-across-chains">
-    Send one asset, receive another, and pick the fastest route.
+    Send SOL on Solana, receive USDC on Base, and take the fastest route.
   </Card>
   <Card title="Deposit to Hyperliquid" icon="chart-line" href="/guides/deposit-to-hyperliquid">
-    Land USDC in a perps or spot balance with one signature.
+    Deposit USDC into a Hyperliquid perps or spot balance with one signature.
   </Card>
   <Card title="Bridge privately" icon="eye-slash" href="/guides/bridge-privately">
-    Restrict routing to venues that do not publish the sender-recipient link.
+    Route only through venues that do not publish the sender-recipient link.
   </Card>
   <Card title="Earn referral fees" icon="percent" href="/guides/earn-referral-fees">
-    Up to 15 bps on the volume you send, capped at $10 a transfer.
+    Earn up to 15 bps on the volume you send, up to \$10 a transfer.
   </Card>
   <Card title="Track a transfer" icon="magnifying-glass" href="/guides/track-a-transfer">
-    Read a transfer by id until it is delivered.
-  </Card>
-</Columns>
-
-## Start integrating
-
-<Columns cols={2}>
-  <Card title="Quickstart" icon="bolt" href="/quickstart">
-    Discover markets, get a quote and execute a transfer.
-  </Card>
-  <Card title="TypeScript SDK" icon="cube" href="/sdk">
-    `npm install @kernlog/brdg-sdk`. One typed method per endpoint.
-  </Card>
-  <Card title="API reference" icon="code" href="/api-reference/overview">
-    Every endpoint, with live examples and a playground.
-  </Card>
-  <Card title="Fees and referrals" icon="percent" href="/concepts/fees">
-    What a transfer costs and how to earn on the volume you send.
+    Follow a transfer by id until it is delivered.
   </Card>
 </Columns>

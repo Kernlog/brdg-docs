@@ -1,23 +1,28 @@
 ---
 title: Bridge privately
-description: Restrict a transfer to venues that do not publish the link between sender and recipient.
+description: Send a transfer only through venues that do not publish the link between sender and recipient.
 ---
 
-## Prerequisites
+## Before you start
 
 - The [TypeScript project](/guides/typescript-setup), which provides `src/evm.ts`.
-- Read [Private bridging](/concepts/privacy) for what this does and does not promise.
+- A Base wallet with some USDC, and ETH to pay for gas.
+- Read [Private bridging](/concepts/privacy) to understand what private routing does and does not protect.
 
 ## Script
 
+This script sends 100 USDC from Base to a different wallet on Arbitrum, using only private venues. Replace `0xRecipient` with the receiving address, save the file as `src/bridge-privately.ts`, and run `npx tsx src/bridge-privately.ts`.
+
 ```typescript src/bridge-privately.ts
-import { brdg, signEvmStep, account } from './evm';
+import type { Hex } from 'viem';
+import { account, brdg, signEvmStep } from './evm';
 
 async function main() {
-  // Which private venues serve the corridor at all
+  // 1. Check that at least one private venue serves the route
   const { routes } = await brdg.getRoutes({ fromChain: 'base', toChain: 'arbitrum', privacy: true });
-  if (routes.length === 0) throw new Error('no private route on this corridor');
+  if (routes.length === 0) throw new Error('no private venue serves this route');
 
+  // 2. Quote with privacy on
   const quote = await brdg.getQuote({
     fromChain: 'base',
     toChain: 'arbitrum',
@@ -28,19 +33,27 @@ async function main() {
     recipient: '0xRecipient',
     privacy: true,
   });
-  if (quote.emptyReason === 'no_private_route') throw new Error('no private venue priced this size');
-  if (!quote.best) throw new Error('nothing executable');
-  console.log(`${quote.best.venue}: ${quote.best.amountOutAtomic} in ~${quote.best.estimatedSeconds}s`);
+  if (quote.emptyReason === 'no_private_route') throw new Error('no private venue quoted this amount');
+  if (!quote.best) throw new Error('no private quote can be signed');
+  console.log(`${quote.best.venue} delivers ${quote.best.amountOutAtomic} in ~${quote.best.estimatedSeconds}s`);
 
-  // privacy is carried on the quote; passing it again on build is optional
-  const build = await brdg.buildTransfer({ decisionId: quote.decisionId, privacy: true });
+  // 3. Build. Privacy carries over from the quote.
+  const build = await brdg.buildTransfer({ decisionId: quote.decisionId });
 
-  // A deposit-address venue returns `deposit` instead of `steps`: send exactly that amount to that address.
-  if (build.deposit) {
-    console.log(`send ${build.deposit.amountAtomic} to ${build.deposit.address} before ${new Date(build.deposit.deadlineMs)}`);
-    return;
+  // 4. Sign every step in order and report the bridge transaction
+  let mainHash: Hex | undefined;
+  for (const step of build.steps) {
+    const hash = await signEvmStep(step);
+    if (step.step === 'main') mainHash = hash;
   }
-  for (const step of build.steps) await signEvmStep(step);
+  if (!mainHash) throw new Error('build carried no main step');
+  await brdg.submitTransfer(build.transferId, { txHash: mainHash, step: 'main' });
+
+  // 5. Wait for delivery
+  const transfer = await brdg.waitForTransfer(build.transferId, {
+    onUpdate: (t) => console.log(t.status),
+  });
+  console.log(transfer.status, transfer.receivedAmountAtomic);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
@@ -48,9 +61,10 @@ main().catch((e) => { console.error(e); process.exit(1); });
 
 ## Notes
 
-- Public venues are dropped before pricing and listed in `rejected` as `privacy_venue_required`.
-- Expect a shorter table, a worse price and a slower transfer than the open route.
-- `GET /bridge/venues` reports each venue's `privacyModel`.
+- Several private venues are exchange desks that issue a deposit address. From an EVM or Solana wallet, BRDG turns that deposit into an ordinary transaction in `steps`, so the script above handles it like any other route.
+- Venues that are not private are skipped and listed in `rejected` with the code `privacy_venue_required`.
+- Expect fewer quotes, a lower output and a slower transfer than on the open route.
+- Husher and SideShift need the end user's IP address. If you call the API from a server, send `userIp` on the quote. See [Rate limits](/api-reference/rate-limits#calling-the-api-from-a-server).
 
 ## Endpoints used
 
@@ -59,3 +73,5 @@ main().catch((e) => { console.error(e); process.exit(1); });
 | `getRoutes` | [`GET /bridge/routes`](/api-reference/markets/routes) |
 | `getQuote` | [`POST /bridge/quote`](/api-reference/quote/quote) |
 | `buildTransfer` | [`POST /bridge/build`](/api-reference/quote/build) |
+| `submitTransfer` | [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) |
+| `waitForTransfer` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |

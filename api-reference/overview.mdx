@@ -1,15 +1,15 @@
 ---
 title: API overview
-description: Seven endpoints to price, execute and track a cross-chain transfer.
+description: Seven endpoints to find routes, quote, execute and track a cross-chain transfer.
 ---
 
-Base URL `https://api.brdg.now/v1`. No API key. Every amount is a string in the asset's atomic units.
+The base URL is `https://api.brdg.now/v1`. There is no API key. Requests and responses are JSON, and every token amount is a string in the token's smallest unit.
 
 ```mermaid
 flowchart TD
-    M["Markets"] --> Q["POST /bridge/quote"]
+    M["Markets: find a route"] --> Q["POST /bridge/quote"]
     Q --> B["POST /bridge/build"]
-    B --> S["sign in your wallet"]
+    B --> S["The user signs in their wallet"]
     S --> U["POST /bridge/transfers/{id}/submit"]
     U --> T["GET /bridge/transfers/{id}"]
 ```
@@ -19,18 +19,18 @@ flowchart TD
 | Endpoint | Returns |
 | --- | --- |
 | [`GET /bridge/source-chains`](/api-reference/markets/source-chains) | Every chain a transfer can start from. |
-| [`GET /bridge/routes`](/api-reference/markets/routes) | Which venues serve a corridor, and with which assets. |
-| [`GET /bridge/venues`](/api-reference/markets/venues) | Every venue, whether it is on, and what it can sign. |
+| [`GET /bridge/routes`](/api-reference/markets/routes) | The venues that serve a route, and the tokens they support on it. |
+| [`GET /bridge/venues`](/api-reference/markets/venues) | Every venue, whether it is on, and what it can do. |
 
 ## Transfers
 
-| Endpoint | Does |
+| Endpoint | What it does |
 | --- | --- |
-| [`POST /bridge/quote`](/api-reference/quote/quote) | Prices the transfer across every venue. Returns `best`, `bestByTime` and the full ranked table. |
-| [`POST /bridge/build`](/api-reference/quote/build) | Turns a quote into the unsigned transactions your wallet signs. |
-| [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) | Takes the signed transaction, or the hash of one you already sent. |
-| [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) | The transfer's status until it is delivered. |
+| [`POST /bridge/quote`](/api-reference/quote/quote) | Prices the transfer at every venue and returns `best`, `bestByTime` and all quotes, ranked. |
+| [`POST /bridge/build`](/api-reference/quote/build) | Turns a quote into the unsigned transactions the user signs. |
+| [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) | Accepts the signed transaction, or the hash of one the wallet already sent. |
+| [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) | Returns the transfer and its current status. |
 
-Hyperliquid is a destination chain like any other: `toChain: "hypercore"`. See [Hyperliquid](/concepts/hyperliquid).
+To deposit into Hyperliquid, use `toChain: "hypercore"`. See [Hyperliquid](/concepts/hyperliquid).
 
-The OpenAPI 3.1 document is at [`/v1/openapi.json`](https://api.brdg.now/v1/openapi.json). The [TypeScript SDK](/sdk) wraps these seven calls.
+The OpenAPI 3.1 document is at [`https://api.brdg.now/v1/openapi.json`](https://api.brdg.now/v1/openapi.json). The [TypeScript SDK](/sdk) has a method for each of these endpoints. Errors are described on [Errors](/reference/errors).

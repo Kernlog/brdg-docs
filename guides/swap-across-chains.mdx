@@ -1,14 +1,16 @@
 ---
 title: Swap across chains
-description: Send SOL on Solana and receive USDC on Base, choosing the fastest route.
+description: Send SOL on Solana, receive USDC on Base, and take the fastest route instead of the cheapest.
 ---
 
-## Prerequisites
+## Before you start
 
-- The [TypeScript project](/guides/typescript-setup) plus `npm install @solana/web3.js bs58`.
-- A Solana wallet holding SOL, and `SOLANA_PRIVATE_KEY` (base58) and `SOLANA_RPC_URL` in `.env`.
+- The [TypeScript project](/guides/typescript-setup), plus `npm install @solana/web3.js bs58`.
+- A Solana wallet with some SOL. Add its base58 private key as `SOLANA_PRIVATE_KEY`, and a Solana RPC URL as `SOLANA_RPC_URL`, to `.env`.
 
 ## Script
+
+Save this as `src/swap-across-chains.ts` and run `npx tsx src/swap-across-chains.ts`.
 
 ```typescript src/swap-across-chains.ts
 import 'dotenv/config';
@@ -21,27 +23,27 @@ const connection = new Connection(process.env.SOLANA_RPC_URL!);
 const brdg = createClient();
 
 async function main() {
-  // 1. Quote: 0.5 SOL to USDC on Base
+  // 1. Quote: 0.5 SOL on Solana to USDC on Base
   const quote = await brdg.getQuote({
     fromChain: 'solana',
     toChain: 'base',
-    fromToken: null, // null is the chain's native asset
+    fromToken: null, // null means the chain's native token, here SOL
     toToken: 'USDC',
     amountAtomic: '500000000',
     sender: keypair.publicKey.toBase58(),
     recipient: '0xYourBaseWallet',
   });
 
-  // 2. Take the fastest executable row instead of the best-priced one
+  // 2. Pick the fastest quote instead of the best-priced one
   const quoteId = quote.bestByTime ?? quote.bestByPrice;
   if (!quoteId) throw new Error('nothing executable');
   const row = quote.quotes.find((q) => q.quoteId === quoteId)!;
   console.log(`${row.venue}: ${row.amountOutAtomic} USDC in ~${row.estimatedSeconds}s`);
 
-  // 3. Build that row
+  // 3. Build that quote
   const build = await brdg.buildTransfer({ decisionId: quote.decisionId, quoteId });
 
-  // 4. Sign the Solana transaction as built. Do not rebuild it: the message bytes are what BRDG verifies.
+  // 4. Sign the Solana transaction exactly as built. BRDG checks the signed bytes against what it built.
   const step = build.steps.find((s) => s.step === 'main');
   if (!step || step.vm !== 'svm') throw new Error('expected a Solana main step');
   const tx = VersionedTransaction.deserialize(
@@ -50,7 +52,7 @@ async function main() {
   tx.sign([keypair]);
   const signature = await connection.sendRawTransaction(tx.serialize());
 
-  // 5. Report the signature and wait
+  // 5. Report the transaction signature and wait for delivery
   await brdg.submitTransfer(build.transferId, { txHash: signature, step: 'main' });
   const transfer = await brdg.waitForTransfer(build.transferId);
   console.log(transfer.status, transfer.receivedAmountAtomic);
@@ -61,9 +63,9 @@ main().catch((e) => { console.error(e); process.exit(1); });
 
 ## Notes
 
-- `fromToken: null` or `toToken: null` means the chain's native asset. Symbols and addresses are both accepted.
-- A wallet may add its own compute-budget instructions; every instruction BRDG built must stay byte-identical.
-- The Solana step carries `refreshBlockhash`; when it is `true`, fetch a fresh blockhash and set it on the message before signing.
+- `fromToken` and `toToken` accept a symbol such as `USDC`, a token address, or `null` for the chain's native token.
+- A wallet may add its own compute-budget instructions, but every instruction BRDG built must stay exactly as it is. Any other change is refused as `built_mismatch`.
+- BRDG sets a recent blockhash on the transaction before returning it, so do not replace it. A Solana blockhash is only valid for about a minute, so sign and send promptly. If it expires, get a new quote.
 
 ## Endpoints used
 

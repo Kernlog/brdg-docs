@@ -1,18 +1,20 @@
 ---
 title: Referrals
-description: Take a share of the volume you send. Two fields on the quote, no sign-up.
+description: Earn a share of every transfer you send through BRDG by adding two fields to the quote. No sign-up needed.
 ---
+
+If you send transfers through BRDG, you can charge your own fee on top and have it paid straight to your wallet. There is nothing to register.
 
 ## Fields
 
+Add both fields to `POST /bridge/quote`, or neither:
+
 | Field | Value |
 | --- | --- |
-| `referralWallet` | The address the share is paid to, valid on the source chain. |
-| `referralBps` | Your rate, `0` to `15`. |
+| `referralWallet` | The wallet your share is paid to. It must be a valid address on the source chain. |
+| `referralBps` | Your rate in basis points, from `0` to `15`. |
 
-Both or neither. They go on `POST /bridge/quote` and follow the decision through `POST /bridge/build`.
-
-Your share is charged on every transfer you refer, including one on which BRDG itself charges nothing, and is capped at **$10** per transfer, converted into the source asset at BRDG's price for it. The platform's own $10 cap is separate. `fees.referral.amountAtomic` is the capped amount.
+The referral carries over from the quote to `POST /bridge/build`, so you do not need to send it again.
 
 ```json
 {
@@ -22,17 +24,25 @@ Your share is charged on every transfer you refer, including one on which BRDG i
   "toToken": "USDC",
   "amountAtomic": "100000000",
   "sender": "0x1111111111111111111111111111111111111111",
-  "recipient": "So1anaRecipient1111111111111111111111111111",
+  "recipient": "3BQtHR41iDPiu9skeSVzmBDpZKcKqEEDnMn6UkbAHvZz",
   "referralWallet": "0x2222222222222222222222222222222222222222",
   "referralBps": 10
 }
 ```
 
-The share is paid on the source chain, so the wallet must be valid for that chain's VM. An EVM address on a route leaving Solana is `400 invalid_referral_wallet`; a rate outside `0` to `15` is `400 invalid_referral_bps`. If you refer traffic on more than one chain family, hold one wallet per family.
+## How much you earn
 
-## Disclosure
+Your share is charged on every transfer you refer, including transfers where BRDG charges no platform fee. It is added on top of the platform fee, never taken out of it.
 
-The share is shown next to the platform fee, in the same asset, before signing:
+Your share is capped at \$10 per transfer, converted into the token being sent at BRDG's price for it. This is separate from the platform's own \$10 cap. `fees.referral.amountAtomic` shows the amount after the cap.
+
+## The wallet must match the source chain
+
+Your share is paid on the source chain, so `referralWallet` must be valid there. An EVM address on a transfer from Solana is refused with `400 invalid_referral_wallet`, and a rate outside `0` to `15` with `400 invalid_referral_bps`. If you refer transfers from more than one kind of chain, keep one wallet for each, and pick the right one per quote.
+
+## What your users see
+
+The quote shows your share next to the platform fee, in the same token, before anything is signed:
 
 ```json
 "fees": {
@@ -41,17 +51,21 @@ The share is shown next to the platform fee, in the same asset, before signing:
 }
 ```
 
-`referral: null` means no referrer was named. `platform: null` beside a non-null `referral` is an ordinary outcome: the route saved the user too little for a platform fee, and your share is still paid.
+`referral` is `null` only when the quote named no referrer. `platform` can be `null` while `referral` is not: that transfer saved too little for a platform fee, and you are still paid.
 
-## Settlement
+## How you are paid
 
-Your share is charged on top of the platform's and paid straight to your wallet in the same signature: an instruction inside the venue's Solana transaction, or a `fee` step beside the EVM bridge call. Nothing is forwarded later. The one case it is not taken is a source chain BRDG has no fee wallet on, where neither cut can be collected.
+Your share is paid to your wallet in the same transaction the user signs for the bridge. On Solana it is an extra instruction in that transaction, and on EVM and Tron it is part of the `fee` step next to the bridge step. Nothing is held back and paid out later.
 
-Each fee is a row in the transfer's `fees` list on `GET /bridge/transfers/{id}`:
+The one exception is a source chain where BRDG cannot collect fees at all. On those chains neither the platform fee nor your share is charged.
 
-| `status` | When |
+## Checking a payout
+
+Each fee appears in the `fees` list of `GET /bridge/transfers/{id}`, with a `kind` of `platform` or `referral` and one of these statuses:
+
+| `status` | Meaning |
 | --- | --- |
-| `offered` | A `fee` step was built and not yet signed. |
-| `expected` | The charge is inside a signed transaction. |
+| `offered` | A `fee` step was built but not signed yet. |
+| `expected` | The fee is inside a transaction the user signed. |
 | `settled` | The transfer completed. `txHash` is the transaction that paid you. |
-| `void` | The transfer refunded or failed, or the fee step was never signed. |
+| `void` | No fee was collected: the transfer was refunded or failed, or the user never signed the `fee` step. |

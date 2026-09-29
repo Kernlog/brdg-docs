@@ -1,33 +1,37 @@
 ---
 title: Ranking
-description: How the best route is chosen.
+description: How BRDG decides which quote is best.
 ---
 
-## Compared in the asset's own units
+## Ranked by what arrives
 
-Quotes on one pair are ranked on net output in atomic units, after every venue fee and the platform fee. For an exact-output trade the ranking is on net input. No price feed is used to compare two venues, so a stale price source cannot change the winner.
+Quotes for the same token pair are ranked by net output, in the token's smallest unit, after every venue fee and the platform fee. For an exact-output transfer, where you fix the amount received, they are ranked by the input needed instead.
 
-Each row carries the numbers the ranking used: `amountOutAtomic`, `minAmountOutAtomic`, `fees`, `feeBps` and `tierSavedBps`.
+BRDG does not use a price feed to compare venues, so a stale or wrong price cannot change which route wins.
 
-## Only executable routes win
+Each quote includes the figures the ranking used: `amountOutAtomic`, `minAmountOutAtomic`, `fees`, `feeBps` and `tierSavedBps`.
 
-A row is eligible when the venue serves the corridor and asset, its catalog is fresh, and the amount is inside its limits. It is executable when the venue can also produce something the wallet can sign for that source chain.
+## Only signable routes can win
 
-`best` is the highest-ranked row that is both. A row that can be priced but not signed stays in the table at its real score with `executable: false`.
+A quote is **eligible** when the venue serves the route and the token, BRDG's information about the venue is up to date, and the amount is within the venue's limits. It is **executable** when the venue can also produce a transaction or signature that a wallet on the source chain can sign.
 
-## Two named picks
+`best` is the highest-ranked quote that is both. A quote that has a price but cannot be signed stays in `quotes` with its real figures and `executable: false`, so you can see it, but it never becomes `best`.
 
-| Field | Is |
+## Best price and fastest
+
+| Field | Contains |
 | --- | --- |
 | `bestByPrice` | The `quoteId` of `best`. |
-| `bestByTime` | The `quoteId` of the executable row with the lowest `estimatedSeconds`. |
+| `bestByTime` | The `quoteId` of the executable quote with the lowest `estimatedSeconds`. |
 
-Speed is never a tiebreak on price. A venue that publishes no ETA is not a candidate for `bestByTime`; `null` there means "not stated", not "instant". Both picks are `null` when nothing in the table is executable.
+Speed never breaks a tie on price. A venue that does not give an estimated time cannot be `bestByTime`, so `null` there means no venue stated a time, not that the transfer is instant. Both fields are `null` when no quote is executable.
 
-## Venue state is kept fresh
+To build the fastest route instead of the cheapest, pass the `bestByTime` value as `quoteId` to `POST /bridge/build`.
 
-Each venue's chains, assets, corridors and limits are refreshed continuously, so a quote never waits on them. A venue whose state has gone stale, or which is failing, is left out of the table until it recovers rather than priced on limits that may no longer exist.
+## Venue data stays current
 
-## Large orders
+BRDG refreshes each venue's chains, tokens, routes and limits in the background, so quoting never waits on them. A venue whose data is out of date, or which is failing, is left out of quotes until it recovers, rather than being priced against limits that may have changed.
 
-The same venue can pay best on a small order and worst on a large one. Above a per-asset size, the quote also measures how each venue's price moves with size. When splitting across venues would beat the best single route, the response carries a `splitPlan` describing that allocation and its `improvementBps`; `planReason` says why none is offered. The table itself, and what `build` executes, is unchanged.
+## Large transfers
+
+A venue that pays best on a small amount can pay worst on a large one. Above a certain size for each token, the quote also measures how each venue's price changes with size. If splitting the transfer across several venues would beat the best single route, the response includes a `splitPlan` with the proposed allocation and its `improvementBps`. When no plan is offered, `planReason` says why. The ranked quotes, and what `POST /bridge/build` executes, stay the same either way.

@@ -1,22 +1,24 @@
 ---
 title: TypeScript SDK
-description: A typed client for every endpoint. No runtime dependencies.
+description: The official TypeScript client for the BRDG API.
 ---
 
 ```bash
 npm install @kernlog/brdg-sdk
 ```
 
-Source and releases: [github.com/Kernlog/brdg-sdk](https://github.com/Kernlog/brdg-sdk). Node 18+ or any runtime with a global `fetch`. One method per endpoint, typed from the API's OpenAPI document, no runtime dependencies.
+`@kernlog/brdg-sdk` has one method per endpoint, with request and response types generated from the API's OpenAPI document. It has no runtime dependencies and runs on Node 18 or later, or any runtime with a global `fetch`. It ships ESM and CommonJS builds.
 
-## Quote, build, sign, submit, track
+Source code and releases are on [GitHub](https://github.com/Kernlog/brdg-sdk).
+
+## Example
 
 ```ts
 import { createClient } from '@kernlog/brdg-sdk';
 
 const brdg = createClient();
 
-// Markets
+// Check which venues serve the route
 const { routes } = await brdg.getRoutes({ fromChain: 'base', toChain: 'solana' });
 
 // Quote: 100 USDC on Base to USDC on Solana
@@ -29,17 +31,17 @@ const quote = await brdg.getQuote({
   sender: '0xYourEvmWallet',
   recipient: 'YourSolanaWallet',
 });
-quote.best; // the row BRDG builds by default
-quote.bestByTime; // quoteId of the fastest executable row
+quote.best; // the quote BRDG builds by default
+quote.bestByTime; // quoteId of the fastest quote a wallet can sign
 quote.quotes; // every venue that answered, best first
 
-// Build the unsigned steps. Pass quoteId to build another row.
+// Build the unsigned steps. Pass quoteId to build a different quote.
 const build = await brdg.buildTransfer({ decisionId: quote.decisionId });
 
-// Sign build.steps in order with your user's wallet, then report the hash
+// Sign build.steps in order with the user's wallet, then report the hash
 await brdg.submitTransfer(build.transferId, { txHash: '0x…', step: 'main' });
 
-// Track until terminal
+// Wait until the transfer finishes
 const transfer = await brdg.waitForTransfer(build.transferId, {
   onUpdate: (t) => console.log(t.status),
 });
@@ -47,17 +49,19 @@ const transfer = await brdg.waitForTransfer(build.transferId, {
 
 ## Configuration
 
+All options are optional.
+
 ```ts
 createClient({
   baseUrl: 'https://api.brdg.now/v1', // default
-  headers: { 'x-integrator': 'my-app' },
-  fetch: customFetch,
+  headers: { 'x-integrator': 'my-app' }, // added to every request
+  fetch: customFetch, // defaults to the global fetch
 });
 ```
 
 ## Errors
 
-Every API error is a `BrdgError` carrying the API's `code`, the HTTP `status`, `details` and, on `429`, `retryAfterMs`. Codes are listed on [Errors](/reference/errors).
+When the API returns an error, the SDK throws a `BrdgError` with the API's `code`, the HTTP `status`, `details` and, on a `429`, `retryAfterMs`. The codes are listed on [Errors](/reference/errors).
 
 ```ts
 import { isBrdgError } from '@kernlog/brdg-sdk';
@@ -66,7 +70,7 @@ try {
   await brdg.buildTransfer({ decisionId });
 } catch (error) {
   if (isBrdgError(error) && error.code === 'quote_drifted') {
-    // re-quote and choose again
+    // the price moved: get a new quote
   }
 }
 ```
@@ -82,6 +86,8 @@ try {
 | `buildTransfer({ decisionId, quoteId? })` | [`POST /bridge/build`](/api-reference/quote/build) |
 | `submitTransfer(transferId, { txHash \| signedTransaction, step })` | [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) |
 | `getTransfer(transferId)` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |
-| `waitForTransfer(transferId, options?)` | polls the transfer until it is terminal |
+| `waitForTransfer(transferId, options?)` | Polls `GET /bridge/transfers/{id}` until the transfer finishes |
 
-Every request and response type is exported: `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/brdg-sdk'`.
+`waitForTransfer` polls every 3 seconds and gives up after 20 minutes by throwing a `TransferTimeoutError`. Change either with `intervalMs` and `timeoutMs`, and pass `onUpdate` to see each status as it arrives.
+
+Every request and response type is exported, for example `import type { QuoteResponse, BuildStep, Transfer } from '@kernlog/brdg-sdk'`.

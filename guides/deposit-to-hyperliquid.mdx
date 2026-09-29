@@ -1,14 +1,17 @@
 ---
 title: Deposit to Hyperliquid
-description: Land USDC in a Hyperliquid perps or spot balance from any chain with one signature.
+description: Deposit USDC from Base into a Hyperliquid perps or spot balance with one signature.
 ---
 
-## Prerequisites
+## Before you start
 
 - The [TypeScript project](/guides/typescript-setup), which provides `src/evm.ts`.
-- A Hyperliquid account address. It does not have to be yours, and it never signs.
+- A Base wallet with at least 50 USDC, and ETH to pay for gas.
+- The Hyperliquid address to credit. It does not have to be yours, and it never signs anything.
 
 ## Script
+
+This script deposits 50 USDC from Base into a Hyperliquid perps balance. Replace `0xHyperliquidAccount` with the address to credit, save the file as `src/deposit-to-hyperliquid.ts`, and run `npx tsx src/deposit-to-hyperliquid.ts`.
 
 ```typescript src/deposit-to-hyperliquid.ts
 import { brdg, signEvmStep, account } from './evm';
@@ -31,7 +34,8 @@ async function main() {
     const hash = await signEvmStep(step);
     if (step.step === 'main') mainHash = hash;
   }
-  await brdg.submitTransfer(build.transferId, { txHash: mainHash!, step: 'main' });
+  if (!mainHash) throw new Error('build carried no main step');
+  await brdg.submitTransfer(build.transferId, { txHash: mainHash, step: 'main' });
 
   const transfer = await brdg.waitForTransfer(build.transferId, {
     onUpdate: (t) => console.log(t.status, t.postStep?.creditedAmountAtomic ?? ''),
@@ -44,9 +48,9 @@ main().catch((e) => { console.error(e); process.exit(1); });
 
 ## Notes
 
-- Two kinds of route compete on the same table: venues that credit the account directly, and a route through Arbitrum where BRDG's relayer credits it. Both need one signature, on the source chain.
-- On the Arbitrum route the transfer carries `postStep`; its `txHash` and `creditedAmountAtomic` report the credit landing.
-- Minimums: 5.10 USDC to an account Hyperliquid has never seen, 1 USDC otherwise. A row below the floor appears in `rejected` as `below_min` with the figure it would have delivered.
+- The quote ranks two kinds of route together: venues that credit the account directly, and routes through Arbitrum where BRDG's relayer credits the account. Both need a single signature on the source chain. See [Hyperliquid](/concepts/hyperliquid).
+- On a route through Arbitrum, the transfer has a `postStep`. Its `txHash` and `creditedAmountAtomic` are set once the Hyperliquid account is credited.
+- The minimum deposit is 5.10 USDC for an account that is new to Hyperliquid, and 1 USDC otherwise. A route that would credit less appears in `rejected` as `below_min`, with the amount it would have delivered.
 
 ## Endpoints used
 

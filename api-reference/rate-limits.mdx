@@ -1,24 +1,37 @@
 ---
 title: Rate limits
-description: Two limits per minute, and the one field to send when you call on behalf of your users.
+description: How many requests you can make, and what to send when you call the API from a server.
 ---
 
-No API key. Quote, build and submit are each limited to 10 requests a minute, counted separately per IP address and per requester wallet (`sender`). Reading markets and transfer status is not limited.
+The API has no keys, so limits are applied per IP address and per sender wallet.
 
-| Scope | Limit | Applies to |
+| Endpoint | Per IP address | Per sender wallet |
 | --- | --- | --- |
-| Per IP address | 10 a minute | `POST /bridge/quote`, `POST /bridge/build`, `POST /bridge/transfers/{id}/submit` |
-| Per requester wallet | 10 a minute | the same three |
-| Reads | none | `GET /bridge/source-chains`, `/bridge/routes`, `/bridge/venues`, `/bridge/transfers/{id}` |
+| `POST /bridge/quote` | 10 a minute | 10 a minute |
+| `POST /bridge/build` | 10 a minute | 10 a minute |
+| `POST /bridge/transfers/{id}/submit` | 10 a minute | 10 a minute |
+| `GET` endpoints | Not limited | Not limited |
 
-A completed transfer costs three calls. A `429` carries the longer of the two waits as `retryAfterMs` and a `Retry-After` header.
+Each endpoint has its own count, so one transfer uses one request from each of the three limits. The sender wallet is the `sender` on the quote, and build and submit count against the same wallet.
+
+## When you hit a limit
+
+The API returns `429` with a `Retry-After` header and `retryAfterMs` in the body. If both the IP and the wallet limit are exceeded, you get the longer of the two waits.
 
 ```json
-{ "error": { "code": "rate_limited", "message": "…", "retryAfterMs": 1200 } }
+{ "error": { "code": "rate_limited", "message": "too many bridge requests; slow down", "retryAfterMs": 1200 } }
 ```
 
-Quote once per user action, not per keystroke, and reuse `decisionId` for the build: a quote stays valid until its `expiresAt`. If your server calls on behalf of many users from one IP, spread quotes across those users' actions rather than polling.
+To stay under the limits:
 
-## `userIp`
+- Quote when the user asks for a price, not on every keystroke.
+- Build from the `decisionId` you already have. A quote stays valid until its `expiresAt`.
+- Wait for `retryAfterMs` before retrying instead of retrying in a loop.
 
-If your server calls the API on behalf of your users, send each user's own IP as `userIp` on the quote. Two venues are geo-gated and refuse an order without it; `GET /bridge/venues` marks them `capabilities.requiresUserIp`. Without the field those venues simply drop out of the table with a reason in `rejected`. It is remembered on the quote and reused on build, so send it once. If your users call from their own browsers, nothing is needed.
+## Calling the API from a server
+
+If your backend calls BRDG for your users, send each user's own IP address as `userIp` on the quote. Two venues, Husher and SideShift, need the end user's IP and are left out of the quote without it, with a reason in `rejected`. `GET /bridge/venues` marks these venues with `capabilities.requiresUserIp`.
+
+BRDG stores `userIp` with the quote and reuses it when you build, so you only need to send it once. If your users call the API directly from their browsers, you do not need to send it.
+
+All requests from your server share one IP address, so the per-IP limit applies to your whole server. Plan your request volume around it.

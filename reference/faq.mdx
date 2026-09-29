@@ -1,34 +1,44 @@
 ---
 title: FAQ
-description: Short answers to common questions.
+description: Answers to common questions about integrating BRDG.
 ---
 
-**Does BRDG hold my funds?**
-No. BRDG never holds funds or keys. Your wallet signs every transaction.
+## Does BRDG hold my users' funds?
 
-**Do I need an account or API key?**
-No. Every endpoint is open, bounded by [rate limits](/api-reference/rate-limits).
+No. BRDG never holds funds or private keys. Your user's wallet signs every transaction.
 
-**Why did a venue with a bigger number not win?**
-Either it was not executable (it can price the corridor but cannot produce something your wallet can sign) or its advertised output was not its net output. Ranking is on what lands.
+## Do I need an account or an API key?
 
-**Is the quoted output what I receive?**
-It is what the chosen venue answered for the amount that is bridged, net of the platform fee. `minAmountOutAtomic` is the floor you agreed to. A delivery in a different asset settles as `PARTIAL`; check `receivedAsset` and `receivedAmountAtomic` on the transfer.
+No. Every endpoint is open to anyone, subject to [rate limits](/api-reference/rate-limits).
 
-**What is `quote_drifted`?**
-A quote near expiry is re-priced once before it is built. If the price moved past the allowed budget, the build is refused with both figures. Quote again.
+## Why didn't the venue with the biggest number win?
 
-**I signed but never submitted. Where is the transfer?**
-It exists as `PENDING_SIGNATURE` and can be read by id.
+Either a wallet cannot sign that venue's quote on this route (it shows `executable: false`), or its headline figure was higher than what actually arrives after fees. BRDG ranks on what arrives. See [Ranking](/concepts/ranking).
 
-**Can I choose the venue?**
-Yes. Pass `quoteId` to build. It must name a row in that decision that was scored `ok`.
+## Is the quoted amount what my user receives?
 
-**What does a transfer cost?**
-Nothing, unless the aggregation saved you more than 10 bps against the other quotes. Then 5 to 15 bps of the amount bridged, capped at $10, taken in the asset you send, on the source chain. See [Fees](/concepts/fees).
+It is what the venue quoted, with the platform fee already taken off. `minAmountOutAtomic` is the least the transfer can deliver. If a different token arrives, the transfer ends as `PARTIAL`; check `receivedAsset` and `receivedAmountAtomic` on the transfer.
 
-**Is there a rate limit?**
-Yes: 10 quotes, builds or submits a minute, per IP and per requester wallet. Reads are not limited. A `429` carries `retryAfterMs`. See [Rate limits](/api-reference/rate-limits).
+## What does `quote_drifted` mean?
 
-**How do I know when a transfer is done?**
-Poll `GET /bridge/transfers/{id}` until `status` is terminal, or use `waitForTransfer` in the SDK. See [Track a transfer](/guides/track-a-transfer).
+If a quote is close to expiring when you build it, BRDG asks the venue for a fresh price first. If the price has moved more than the allowed amount, the build is refused and `details` contains both amounts. Get a new quote.
+
+## My user signed but I never called submit. Where is the transfer?
+
+It exists with the status `PENDING_SIGNATURE`, and you can read it by id. Submit the transaction hash to move it forward.
+
+## Can I choose the venue?
+
+Yes. Pass the `quoteId` of any executable quote to `POST /bridge/build`. It must come from the same quote response.
+
+## What does a transfer cost?
+
+Nothing, unless the chosen route beat the alternatives by more than 10 bps. Then the platform fee is 5 to 15 bps of the amount sent, capped at \$10, taken in the token being sent. Venue fees are included in every quoted amount. See [Fees](/concepts/fees).
+
+## Is there a rate limit?
+
+Yes. Each IP address and each sender wallet can make 10 quote requests, 10 build requests and 10 submit requests a minute. Reading markets and transfers is not limited. A `429` response includes `retryAfterMs`. See [Rate limits](/api-reference/rate-limits).
+
+## How do I know when a transfer is done?
+
+Poll `GET /bridge/transfers/{id}` until `status` is `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` or `ABANDONED`, or use `waitForTransfer` in the SDK. See [Track a transfer](/guides/track-a-transfer).

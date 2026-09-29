@@ -1,14 +1,16 @@
 ---
 title: Quickstart
 sidebarTitle: Quickstart
-description: Discover markets, quote a transfer, build the transaction and track it.
+description: Find a route, get a quote, build the transaction, submit it and track it.
 ---
 
-Base URL: `https://api.brdg.now/v1`. No API key. Amounts are strings in atomic units (`100000000` is 100 USDC). Every call below is also one method on the [TypeScript SDK](/sdk).
+This page walks through one transfer, 100 USDC from Base to Solana, with curl, plain JavaScript and the [TypeScript SDK](/sdk).
+
+The base URL is `https://api.brdg.now/v1` and no API key is needed. Amounts are strings in the token's smallest unit: USDC has 6 decimals, so `100000000` is 100 USDC.
 
 <Steps>
-  <Step title="Discover markets">
-    Chains a transfer can start from, and which venues serve a corridor:
+  <Step title="Find a route">
+    List the chains a transfer can start from, then check which venues serve the route you want:
 
     <CodeGroup>
     ```bash curl
@@ -41,11 +43,11 @@ Base URL: `https://api.brdg.now/v1`. No API key. Amounts are strings in atomic u
     }
     ```
 
-    `tokenSymbols` is capped; `tokenSymbolCount` is exact. Chain keys are listed on [Chains](/reference/chains), venues on [Venues](/reference/venues).
+    `tokenSymbols` is a sample of the tokens a venue supports on the route, and `tokenSymbolCount` is the full count. All chain keys are listed on [Chains](/reference/chains), and all venues on [Venues](/reference/venues).
   </Step>
 
   <Step title="Get a quote">
-    100 USDC on Base to USDC on Solana:
+    Send the route, the tokens, the amount and both wallets. `recipient` is required here because Solana addresses differ from EVM ones.
 
     <CodeGroup>
     ```bash curl
@@ -85,7 +87,7 @@ Base URL: `https://api.brdg.now/v1`. No API key. Amounts are strings in atomic u
     ```
     </CodeGroup>
 
-    The response carries the winner, the two named picks, and every venue that answered:
+    The response (shortened here) contains the best route, the fastest route and every venue that answered:
 
     ```json
     {
@@ -128,17 +130,17 @@ Base URL: `https://api.brdg.now/v1`. No API key. Amounts are strings in atomic u
 
     | Field | Meaning |
     | --- | --- |
-    | `best` | The row BRDG builds by default: highest net output among rows a wallet can sign. |
-    | `bestByPrice` | `best`'s `quoteId`. |
-    | `bestByTime` | The `quoteId` of the fastest executable row. `null` when no row publishes an ETA. |
-    | `quotes` | Every venue that answered, best first. Each row carries its own output, floor, fees and ETA. |
-    | `rejected` | Venues that could not price the corridor, with a reason code. |
+    | `best` | The quote BRDG builds by default: the highest net output among quotes a wallet can sign. |
+    | `bestByPrice` | The `quoteId` of `best`. |
+    | `bestByTime` | The `quoteId` of the fastest quote a wallet can sign. `null` when no venue gives an estimated time. |
+    | `quotes` | Every venue that answered, best first, each with its output, minimum output, fees and estimated time. |
+    | `rejected` | Venues that could not quote, each with a reason code. |
 
-    Every `amountOutAtomic` is already net of the platform fee. The full row shape is on [Quote](/api-reference/quote/quote).
+    Every `amountOutAtomic` already has the platform fee taken off. The full response is documented under [Get quote](/api-reference/quote/quote).
   </Step>
 
   <Step title="Build the transaction">
-    Build the decision. Pass `quoteId` to build a row other than `best`, for example the one `bestByTime` names.
+    Send the `decisionId` from the quote. BRDG builds `best` unless you pass a `quoteId` to pick another quote, such as the one `bestByTime` names.
 
     <CodeGroup>
     ```bash curl
@@ -175,13 +177,13 @@ Base URL: `https://api.brdg.now/v1`. No API key. Amounts are strings in atomic u
     }
     ```
 
-    `steps` is every transaction to sign, in order. `expectedOutAtomic` equals the `amountOutAtomic` of the row you built. `transferId` is the order id from here on. A build is idempotent: repeating it returns the same steps.
+    `steps` lists every transaction to sign, in order. `expectedOutAtomic` matches the `amountOutAtomic` you were quoted. From here on, `transferId` identifies the transfer. Building the same decision again returns the same steps.
   </Step>
 
   <Step title="Sign and submit">
-    Sign each step with your user's wallet. On EVM, supply nonce and gas yourself. On Solana, sign `serializedTx` without rebuilding it.
+    Have the user's wallet sign each step, in order. On EVM, the wallet sets the nonce and gas (`gasLimit` is included when the venue provides one). On Solana, sign `serializedTx` exactly as returned.
 
-    Then either hand back the signed bytes for BRDG to broadcast, or report the hash of a transaction the wallet already sent:
+    Then either send the signed transaction for BRDG to broadcast, or report the hash of a transaction the wallet already sent:
 
     <CodeGroup>
     ```bash Report a hash
@@ -199,7 +201,7 @@ Base URL: `https://api.brdg.now/v1`. No API key. Amounts are strings in atomic u
     ```
     </CodeGroup>
 
-    The transaction is decoded and compared to the built steps. A mismatch is refused and nothing is broadcast.
+    BRDG decodes the transaction and compares it with the steps it built. If they do not match, the request is refused and nothing is broadcast.
   </Step>
 
   <Step title="Track">
@@ -212,14 +214,14 @@ Base URL: `https://api.brdg.now/v1`. No API key. Amounts are strings in atomic u
     ```
     </CodeGroup>
 
-    `status` moves `PENDING_SIGNATURE` → `SUBMITTED` → `PENDING` → `COMPLETED`. Terminal states are `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` and `ABANDONED`. Poll it, or use `waitForTransfer` in the SDK. See [Track a transfer](/guides/track-a-transfer).
+    A successful transfer moves through `PENDING_SIGNATURE`, `SUBMITTED` and `PENDING` to `COMPLETED`. It is finished once `status` is `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` or `ABANDONED`. Poll the endpoint, or use `waitForTransfer` in the SDK. [Track a transfer](/guides/track-a-transfer) explains each status.
   </Step>
 </Steps>
 
-## Next
+## Next steps
 
 <Columns cols={3}>
-  <Card title="Ranking" href="/concepts/ranking">How the winner is chosen.</Card>
+  <Card title="Ranking" href="/concepts/ranking">How the best route is chosen.</Card>
   <Card title="Fees" href="/concepts/fees">What a transfer costs.</Card>
-  <Card title="Errors" href="/reference/errors">Every error code and what to do.</Card>
+  <Card title="Errors" href="/reference/errors">Error codes and how to handle them.</Card>
 </Columns>

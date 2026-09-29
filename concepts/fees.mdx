@@ -1,30 +1,34 @@
 ---
 title: Fees
-description: A platform fee tiered on what the aggregation saved, charged in the asset being bridged.
+description: BRDG charges a platform fee only when it found your user a better price, and never more than $10 a transfer.
 ---
+
+BRDG only charges when the route it found is meaningfully better than the alternatives. Most transfers pay no platform fee at all.
 
 ## Rate
 
-BRDG charges only when the aggregation saved you something. The tier is set by how much the chosen route beat the four closest executable quotes in the same table, on average, measured when the route is decided. Venues far behind the market never raise the tier.
+When a route is chosen, BRDG compares it with the four next-best quotes a wallet could sign and works out how much better it is, on average, in basis points (bps). That saving sets the fee:
 
-| Average bps saved | Platform fee |
+| Average saving | Platform fee |
 | --- | --- |
-| 0 to 10 | none |
-| over 10 to 100 | 5 bps |
-| over 100 to 120 | 10 bps |
-| over 120 | 15 bps |
+| 10 bps or less | None |
+| More than 10, up to 100 bps | 5 bps |
+| More than 100, up to 120 bps | 10 bps |
+| More than 120 bps | 15 bps |
 
-A route with nothing to compare against, or one that saved ten bps or less, pays no platform fee: `fees.platform` is `null` and every row's `feeBps` is `0`. 15 bps is the ceiling on the rate.
+Only the four closest competitors count, so a venue with a very poor price cannot push the fee up. If there is nothing to compare against, for example because only one venue serves the route, there is no platform fee. In that case `fees.platform` is `null` and each quote's `feeBps` is `0`.
 
 ## Maximum
 
-The platform fee on one transfer is never more than **$10**, whatever the rate. The cap is converted into the asset you are bridging at BRDG's own price for it; `feeAmountAtomic` is the capped amount. A referral share is capped at $10 separately. See [Referrals](/concepts/referrals).
+The platform fee on a single transfer is capped at \$10, whatever the rate. BRDG converts the cap into the token you are sending at its own price for that token, and `feeAmountAtomic` shows the amount after the cap. If BRDG has no price for the token, the cap cannot be applied and the rate alone is charged.
 
-## How it is charged
+A referral fee has its own, separate \$10 cap. See [Referrals](/concepts/referrals).
 
-- Taken from the asset you are bridging, on the source chain. Nothing is charged in a second token.
-- Every output in the quote is already net of it. Building a row returns the same `amountOutAtomic` the quote showed.
-- Disclosed on every quote before anything is signed. A referral share is charged and paid whether or not the platform fee applies:
+## What you see in a quote
+
+Every output amount in a quote already has the fee taken off, so the number you show your user is the number they receive. When you build a quote, `expectedOutAtomic` matches the `amountOutAtomic` you were shown.
+
+The fee is disclosed in the quote before anything is signed:
 
 ```json
 "fees": {
@@ -33,23 +37,21 @@ The platform fee on one transfer is never more than **$10**, whatever the rate. 
 }
 ```
 
-`null` means no fee of that kind is taken on this route. It is never a zero-rate fee.
+`bps` and `amountAtomic` are measured in the token you send, and `tierSavedBps` is the saving that set the rate. A `null` entry means no fee of that kind is charged. Each quote in `quotes` also carries its own `feeBps`, `feeAmountAtomic` and `tierSavedBps`, because each one saved a different amount.
 
-Each ranked row also carries its own `feeBps`, `feeAmountAtomic` and `tierSavedBps`, because the tier depends on what that row saved.
+## How the fee is collected
 
-## How it is collected
+The fee comes out of the transfer itself. Your user never pays it in a second token. The `feeCapture` field on the build response tells you how:
 
-The build response names the shape in `feeCapture`.
-
-| `feeCapture` | What you sign | Signatures |
+| `feeCapture` | How it works | Signatures |
 | --- | --- | --- |
-| `venue-param` | The venue deducts the fee inside its own leg. | 1 |
-| `merged` | The fee transfer is an instruction inside the venue's Solana transaction. | 1 |
-| `batch` | A `fee` step before the EVM bridge call. Wallets with EIP-5792 batching sign both as one bundle. | 1 or 2 |
-| `none` | No fee on this route. | none |
+| `venue-param` | The venue takes the fee as part of its own transaction. Some venues take it from the output rather than the input. | 1 |
+| `merged` | The fee transfer is an extra instruction inside the Solana transaction. | 1 |
+| `batch` | A separate `fee` step comes before the bridge step. `feeBatch` lists the steps a wallet with EIP-5792 batching can sign as one bundle. | 1, or 2 without batching |
+| `none` | No fee is collected on this transfer. | Not applicable |
 
-Where a Solana transaction cannot carry the extra instruction, the fee is forgone and `feeCapture` reads `none`.
+If a Solana transaction has no room for the extra instruction, BRDG drops the fee rather than the transfer, and `feeCapture` is `none`.
 
-## Hyperliquid relay
+## Hyperliquid deposits through Arbitrum
 
-A transfer to Hyperliquid routed through Arbitrum is credited by BRDG's relayer. The relayer's cost is a flat amount already off the quoted figure, with nothing extra to approve. See [Hyperliquid](/concepts/hyperliquid).
+Some deposits to Hyperliquid bridge to Arbitrum first, and BRDG's relayer then credits the Hyperliquid account. The relayer charges its gas cost plus 10 cents, capped at \$1. This charge is already taken off the quoted output and needs no extra approval. See [Hyperliquid](/concepts/hyperliquid).

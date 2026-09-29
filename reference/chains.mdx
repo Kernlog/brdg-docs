@@ -1,94 +1,30 @@
 ---
 title: Chains
-description: Every chain key the API accepts, grouped by virtual machine.
+description: Every chain key the API accepts, grouped by chain family.
 ---
 
-Chain keys are lowercase strings, the same on every endpoint. Which chains a transfer can start from right now is answered live by [`GET /bridge/source-chains`](/api-reference/markets/source-chains); which venues serve a corridor by [`GET /bridge/routes`](/api-reference/markets/routes).
+Chains are identified by lowercase keys, such as `base` or `solana`, and the same key is used on every endpoint. The API accepts 73 chain keys.
 
-73 chains, 12 families.
+A key being listed here does not mean every route is available. To see which chains a transfer can start from right now, call [`GET /bridge/source-chains`](/api-reference/markets/source-chains). To see which venues serve a particular route, call [`GET /bridge/routes`](/api-reference/markets/routes).
 
 ## EVM
 
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `ethereum` | `arbitrum` | `optimism` | `base` |
-| `polygon` | `bnb` | `avalanche` | `linea` |
-| `scroll` | `zksync` | `mantle` | `blast` |
-| `mode` | `gnosis` | `celo` | `unichain` |
-| `sonic` | `ink` | `plume` | `worldchain` |
-| `monad` | `sei` | `xlayer` | `plasma` |
-| `berachain` | `hyperevm` | `stable` | `robinhood` |
-| `arc` | `fantom` | `zircuit` | `lisk` |
-| `soneium` | `abstract` | `taiko` | `metis` |
-| `moonbeam` | `aurora` | `cronos` | `opbnb` |
-| `ronin` | `rootstock` | `citrea` | `botanix` |
-| `katana` |  |  |  |
+`ethereum`, `arbitrum`, `optimism`, `base`, `polygon`, `bnb`, `avalanche`, `linea`, `scroll`, `zksync`, `mantle`, `blast`, `mode`, `gnosis`, `celo`, `unichain`, `sonic`, `ink`, `plume`, `worldchain`, `monad`, `sei`, `xlayer`, `plasma`, `berachain`, `hyperevm`, `stable`, `robinhood`, `arc`, `fantom`, `zircuit`, `lisk`, `soneium`, `abstract`, `taiko`, `metis`, `moonbeam`, `aurora`, `cronos`, `opbnb`, `ronin`, `rootstock`, `citrea`, `botanix`, `katana`
 
-## Solana VM
+## Other chains
 
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `solana` | `fogo` | `eclipse` |  |
+| Family | Keys |
+| --- | --- |
+| Solana VM | `solana`, `fogo`, `eclipse` |
+| UTXO | `bitcoin`, `litecoin`, `dogecoin`, `bitcoincash`, `zcash`, `dash` |
+| Move | `sui`, `aptos`, `movement` |
+| Cosmos | `injective`, `noble`, `osmosis`, `cosmoshub` |
+| Substrate | `polkadot`, `assethub` |
+| Tron | `tron` |
+| NEAR | `near` |
+| Starknet | `starknet` |
+| TON | `ton` |
+| Stellar | `stellar` |
+| Other | `cardano`, `xrpl`, `algorand`, `hypercore`, `lighter` |
 
-## UTXO
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `bitcoin` | `litecoin` | `dogecoin` | `bitcoincash` |
-| `zcash` | `dash` |  |  |
-
-## Move
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `sui` | `aptos` | `movement` |  |
-
-## Tron
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `tron` |  |  |  |
-
-## Cosmos
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `injective` | `noble` | `osmosis` | `cosmoshub` |
-
-## NEAR
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `near` |  |  |  |
-
-## Starknet
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `starknet` |  |  |  |
-
-## TON
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `ton` |  |  |  |
-
-## Stellar
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `stellar` |  |  |  |
-
-## Substrate
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `polkadot` | `assethub` |  |  |
-
-## Other
-
-| Key | Key | Key | Key |
-| --- | --- | --- | --- |
-| `cardano` | `xrpl` | `algorand` | `hypercore` |
-| `lighter` |  |  |  |
-
+`hypercore` is Hyperliquid's own ledger. To deposit into a Hyperliquid account, see [Hyperliquid](/concepts/hyperliquid).

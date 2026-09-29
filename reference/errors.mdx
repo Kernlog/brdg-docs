@@ -1,34 +1,77 @@
 ---
 title: Errors
-description: One envelope on every route. Branch on the code.
+description: The error format, and what to do about each error code.
 ---
 
+## Error format
+
+Errors are returned with an HTTP status and a JSON body. Branch on `code`, which is stable; `message` is for people and may change.
+
 ```json
-{ "error": { "code": "quote_drifted", "message": "…", "details": {}, "retryAfterMs": 0 } }
+{
+  "error": {
+    "code": "quote_drifted",
+    "message": "…",
+    "details": {},
+    "retryAfterMs": 1200
+  }
+}
 ```
 
-`details` carries what you act on: both figures of a drifted quote, the verdict that refused a venue override.
+`details` is included when there is something to act on, such as the quoted and current amounts of a drifted quote. `retryAfterMs` is included on `429` responses.
 
-| Code | Status | What to do |
+A request body that fails schema validation, such as a missing field or an unknown chain key, returns `400` with a different body: `error.name` is `"ZodError"` and `error.message` is a JSON string listing each problem and its field path. It has no `code`, so the SDK reports it as a `BrdgError` with the code `unknown`.
+
+## Error codes
+
+### Quote
+
+| Code | Status | Meaning and what to do |
 | --- | --- | --- |
-| `unknown_asset` | 400 | No venue with fresh state lists that token. |
-| `sender_required` / `recipient_required` | 400 | Supply the wallet, or the recipient on a cross-VM corridor. |
-| `invalid_refund_address` | 400 | Not a valid address on the source chain. |
-| `invalid_referral_wallet` / `invalid_referral_bps` | 400 | Wallet not valid on the source chain's VM, or rate outside 0 to 15. |
-| `built_mismatch` | 400 | The signed transaction is not what was built. Nothing was sent. |
-| `invalid_tx_hash` | 400 | Not a valid hash for the source chain. |
-| `decision_not_found` / `transfer_not_found` | 404 | Expired, or never existed. |
-| `quote_expired` / `quote_drifted` | 409 | Quote again and choose again. |
-| `build_expired` / `transfer_not_signable` | 409 | Build again before signing. |
-| `venue_not_eligible` / `venue_not_in_decision` | 409 / 400 | The `quoteId` or `venue` override was refused. |
-| `privacy_venue_required` | 409 | A public venue was built against a private decision. |
-| `below_min` | 409 | The row would not clear Hyperliquid's minimum. |
-| `indicative_decision` | 409 | Indicative pricing cannot be built. |
-| `execution_disabled` | 409 | Execution is switched off. Quoting still serves. |
-| `tx_not_found` | 409 | The hash is not visible yet. Retry with the same hash. |
-| `tx_reverted` | 409 | It matched a built step and reverted. Sign again. |
-| `tx_mismatch` | 409 | That hash is on chain and is not a step BRDG built. Do not sign again. |
-| `tx_hash_already_claimed` | 409 | Another order already holds that transaction. |
-| `user_ip_mismatch` | 409 | A different end user than the venue created the order for. |
-| `rate_limited` | 429 | Wait `retryAfterMs`. |
-| `broadcast_failed` | 502 | The chain never saw it. The order is unchanged. Sign again. |
+| `unknown_asset` | 400 | No venue lists that token on this chain. Check the symbol or address. |
+| `sender_required` | 400 | Send the `sender` wallet. |
+| `recipient_required` | 400 | Send `recipient`. It is required when the destination chain uses a different address format from the source chain. |
+| `invalid_sender`, `invalid_recipient` | 400 | The address is not valid on the source or destination chain. |
+| `invalid_refund_address` | 400 | `refundAddress` is not valid on the source chain. |
+| `invalid_referral` | 400 | Send `referralWallet` and `referralBps` together, or neither. |
+| `invalid_referral_wallet` | 400 | `referralWallet` is not valid on the source chain. |
+| `invalid_referral_bps` | 400 | `referralBps` must be from 0 to 15. |
+
+### Build
+
+| Code | Status | Meaning and what to do |
+| --- | --- | --- |
+| `decision_not_found` | 404 | The `decisionId` expired or never existed. Get a new quote. |
+| `quote_expired`, `quote_drifted` | 409 | The quote is too old, or the price moved too far when it was checked again. `details` has both amounts. Get a new quote. |
+| `quote_not_in_decision`, `venue_not_in_decision` | 400 | The `quoteId` or `venue` you passed is not part of this quote. |
+| `unknown_venue` | 400 | No venue has that id. |
+| `venue_not_eligible`, `not_executable` | 409 | The quote you chose cannot be built, for example because a wallet cannot sign it. Pick another quote. |
+| `venue_disabled` | 409 | The venue has been switched off since you quoted. Get a new quote. |
+| `venue_not_buildable` | 409 | The venue could not build this route. Pick another quote. |
+| `privacy_venue_required` | 409 | The quote was private and the venue you chose is not a private venue. |
+| `below_min` | 409 | The deposit would credit less than Hyperliquid's minimum. |
+| `indicative_decision` | 409 | The quote was requested with `indicative: true` and cannot be built. |
+| `blockhash_unavailable` | 503 | BRDG could not get a recent Solana blockhash. Get a new quote and try again. |
+
+### Submit
+
+| Code | Status | Meaning and what to do |
+| --- | --- | --- |
+| `transfer_not_found` | 404 | No transfer has that id. |
+| `built_mismatch` | 400 | The signed transaction is not what BRDG built. Nothing was sent. |
+| `invalid_tx_hash` | 400 | The hash is not valid for the source chain. |
+| `build_expired`, `transfer_not_signable` | 409 | The build expired before it was submitted. Build again, then sign. |
+| `tx_not_found` | 409 | The transaction is not visible on chain yet. Retry with the same hash. |
+| `tx_reverted` | 409 | The transaction matched a built step but reverted on chain. Sign again. |
+| `tx_mismatch` | 409 | That hash is on chain but is not a transaction BRDG built. Do not sign again. |
+| `tx_hash_already_claimed` | 409 | Another transfer already uses that transaction. |
+| `user_ip_mismatch` | 409 | The `userIp` on submit is not the one the venue created the order for. Submit from the same end user. |
+| `broadcast_failed` | 502 | The network did not accept the transaction. The transfer is unchanged, so you can sign and submit again. |
+
+### Any endpoint
+
+| Code | Status | Meaning and what to do |
+| --- | --- | --- |
+| `execution_disabled` | 409 | Building and submitting are temporarily switched off. Quotes still work. |
+| `rate_limited` | 429 | Too many requests. Wait `retryAfterMs` before retrying. See [Rate limits](/api-reference/rate-limits). |
+| `not_found` | 404 | The path does not exist. Check the URL and the `/v1` prefix. |

@@ -1,25 +1,29 @@
 ---
 title: Earn referral fees
-description: Take up to 15 bps on every transfer you send through BRDG. Two fields on the quote.
+description: Earn up to 15 bps on every transfer you send through BRDG by adding two fields to the quote.
 ---
 
-## Prerequisites
+## Before you start
 
 - The [TypeScript project](/guides/typescript-setup).
-- One wallet per chain family you refer on. The share is paid on the source chain.
+- A wallet to receive your share on each kind of source chain you support, for example one EVM wallet and one Solana wallet. Your share is paid on the source chain.
 
 ## Script
+
+This script quotes a Base to Solana transfer with a 10 bps referral fee, then shows how to check the payout on a finished transfer. Save it as `src/earn-referral-fees.ts` and run `npx tsx src/earn-referral-fees.ts <transferId>`.
 
 ```typescript src/earn-referral-fees.ts
 import { createClient } from '@kernlog/brdg-sdk';
 
 const brdg = createClient();
-const REFERRAL: Record<'evm' | 'svm', string> = {
+
+// One payout wallet per kind of source chain
+const REFERRAL_WALLETS = {
   evm: '0xYourEvmWallet',
-  svm: 'YourSolanaWallet',
+  solana: 'YourSolanaWallet',
 };
 
-async function main() {
+async function main(transferId?: string) {
   const quote = await brdg.getQuote({
     fromChain: 'base',
     toChain: 'solana',
@@ -28,27 +32,29 @@ async function main() {
     amountAtomic: '100000000',
     sender: '0xUserWallet',
     recipient: 'UserSolanaWallet',
-    referralWallet: REFERRAL.evm, // must be valid on the SOURCE chain
+    referralWallet: REFERRAL_WALLETS.evm, // Base is the source chain, so use the EVM wallet
     referralBps: 10,
   });
 
-  // Disclosed next to the platform fee, in the input asset, before anything is signed
+  // Your share is shown next to the platform fee, in the token being sent, before anything is signed
   console.log(quote.fees.referral); // { bps: 10, amountAtomic: '100000', asset: '0x8335…', wallet: '0xYour…' }
 
-  // Later: each fee leg on the transfer reports where your share is
-  const transfer = await brdg.getTransfer('transferId');
-  for (const fee of transfer.fees) console.log(fee.kind, fee.status, fee.amountAtomic, fee.txHash);
+  // Once a transfer exists, each fee on it reports whether it has been paid
+  if (transferId) {
+    const transfer = await brdg.getTransfer(transferId);
+    for (const fee of transfer.fees) console.log(fee.kind, fee.status, fee.amountAtomic, fee.txHash);
+  }
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main(process.argv[2]).catch((e) => { console.error(e); process.exit(1); });
 ```
 
 ## Notes
 
-- Both fields or neither. `referralBps` is `0` to `15`. Your share on one transfer is capped at $10.
-- The share is paid in the same signature as the bridge: an instruction inside the Solana transaction, or the `fee` step beside the EVM call. Nothing is forwarded later.
-- Your share is taken even on a transfer BRDG itself charges nothing for. `fees.referral` is `null` only when no referrer was named.
-- Fee status moves `offered` → `expected` → `settled`, or `void` on a refund or failure. See [Referrals](/concepts/referrals).
+- Send both fields or neither. `referralBps` can be `0` to `15`, and your share of a single transfer is capped at \$10.
+- Your share is paid in the same transaction as the bridge: as an extra instruction in the Solana transaction, or in the `fee` step next to the EVM bridge step. Nothing is paid out later.
+- You are paid even on transfers where BRDG charges no platform fee. `fees.referral` is `null` only when the quote named no referrer.
+- A fee's status moves from `offered` to `expected` to `settled`, or to `void` if the transfer is refunded or fails. See [Referrals](/concepts/referrals).
 
 ## Endpoints used
 
