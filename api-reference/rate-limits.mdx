@@ -3,7 +3,7 @@ title: Rate limits
 description: How many requests you can make, and what to send when you call the API from a server.
 ---
 
-The API has no keys, so limits are applied per IP address and per sender wallet.
+Without a key, limits are applied per IP address and per sender wallet. Partners that call BRDG from a server can get a key with higher limits: see [Higher rate limits and partner access](#higher-rate-limits-and-partner-access).
 
 | Endpoint | Per IP address | Per sender wallet |
 | --- | --- | --- |
@@ -19,7 +19,14 @@ Each endpoint has its own count, so one transfer uses one request from each of t
 The API returns `429` with a `Retry-After` header and `retryAfterMs` in the body. If both the IP and the wallet limit are exceeded, you get the longer of the two waits.
 
 ```json
-{ "error": { "code": "rate_limited", "message": "too many bridge requests; slow down", "retryAfterMs": 1200 } }
+{
+  "error": {
+    "code": "rate_limited",
+    "message": "too many bridge requests; slow down. Higher limits are available on request: contact @kernlog on Telegram or kernlog@print.world",
+    "details": { "contact": "@kernlog on Telegram or kernlog@print.world" },
+    "retryAfterMs": 1200
+  }
+}
 ```
 
 To stay under the limits:
@@ -34,4 +41,36 @@ If your backend calls BRDG for your users, send each user's own IP address as `u
 
 BRDG stores `userIp` with the quote and reuses it when you build, so you only need to send it once. If your users call the API directly from their browsers, you do not need to send it.
 
-All requests from your server share one IP address, so the per-IP limit applies to your whole server. Plan your request volume around it.
+Without a key, all requests from your server share one IP address, so the per-IP limit applies to your whole server. With a partner key, it applies to each `userIp` instead.
+
+## Higher rate limits and partner access
+
+Higher limits are available on request: contact [@kernlog on Telegram](https://t.me/kernlog) or [kernlog@print.world](mailto:kernlog@print.world). Keys are issued by BRDG only; there is no signup or self-serve page.
+
+Send the key in the `x-brdg-api-key` header on every request, and send each end user's IP as `userIp`. With a valid key:
+
+- The per-IP limit applies to the `userIp` on the request, not to your server's address. Each of your users gets the normal per-IP limit. Build and submit reuse the `userIp` from the quote when you do not send one. A request with no `userIp` is counted against your server's address, as without a key.
+- The per-sender-wallet limit is unchanged.
+- Your key also has a total limit across all your users, per endpoint group. The default is 600 quotes, 300 builds and 300 submits a minute, and it can be raised on request.
+
+```bash
+curl https://api.brdg.now/v1/bridge/quote \
+  -H 'content-type: application/json' \
+  -H 'x-brdg-api-key: brdg_...' \
+  -d '{ "fromChain": "base", "toChain": "solana", "fromToken": "USDC", "toToken": "USDC", "amountAtomic": "100000000", "sender": "0x...", "recipient": "...", "userIp": "203.0.113.7" }'
+```
+
+With the [SDK](/sdk), pass `apiKey`:
+
+```ts
+const brdg = createClient({ apiKey: process.env.BRDG_API_KEY, retry: true });
+```
+
+Keep the key on your server. Never send it to a browser.
+
+| Response | When |
+| --- | --- |
+| `401 invalid_api_key` | The key is not recognised. |
+| `401 api_key_disabled` | The key has been switched off. Contact us to re-enable or replace it. |
+
+Leaving the header out, or sending it empty, is the same as calling without a key.

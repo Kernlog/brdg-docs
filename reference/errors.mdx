@@ -89,5 +89,7 @@ A body that is not valid JSON gets the same response.
 | Code | Status | Meaning and what to do |
 | --- | --- | --- |
 | `execution_disabled` | 409 | Building and submitting are temporarily switched off. Quotes still work. |
-| `rate_limited` | 429 | Too many requests. Wait `retryAfterMs` before retrying. See [Rate limits](/api-reference/rate-limits). |
+| `invalid_api_key` | 401 | An `x-brdg-api-key` header was sent and the key is not recognised. Check the key, or send no header to call without one. `details.contact` says who issues keys. |
+| `api_key_disabled` | 401 | The partner key has been switched off. Contact [@kernlog on Telegram](https://t.me/kernlog) or [kernlog@print.world](mailto:kernlog@print.world). |
+| `rate_limited` | 429 | Too many requests. Wait `retryAfterMs` before retrying. Higher limits are available on request: contact [@kernlog on Telegram](https://t.me/kernlog) or [kernlog@print.world](mailto:kernlog@print.world) (also in `details.contact`). See [Rate limits](/api-reference/rate-limits). |
 | `not_found` | 404 | The path does not exist. Check the URL and the `/v1` prefix. |

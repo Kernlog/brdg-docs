@@ -9,7 +9,7 @@ No. BRDG never holds funds or private keys. Your user's wallet signs every trans
 
 ## Do I need an account or an API key?
 
-No. Every endpoint is open to anyone, subject to [rate limits](/api-reference/rate-limits).
+No. Every endpoint is open to anyone, subject to [rate limits](/api-reference/rate-limits). Partners that call BRDG from a server for many users can ask for an API key with higher limits.
 
 ## Why didn't the venue with the biggest number win?
 
@@ -38,6 +38,10 @@ Nothing, unless the chosen route beat the alternatives by more than 10 bps. Then
 ## Is there a rate limit?
 
 Yes. Each IP address and each sender wallet can make 10 quote requests, 10 build requests and 10 submit requests a minute. Reading markets and transfers is not limited. A `429` response includes `retryAfterMs`. See [Rate limits](/api-reference/rate-limits).
+
+## How do I get higher rate limits?
+
+Ask. Contact [@kernlog on Telegram](https://t.me/kernlog) or [kernlog@print.world](mailto:kernlog@print.world) with what you are building and the volume you expect. Partners get an API key, sent as `x-brdg-api-key`, that applies the per-IP limit to each of your users' `userIp` instead of your server, with a higher total limit for your key. See [Higher rate limits and partner access](/api-reference/rate-limits#higher-rate-limits-and-partner-access).
 
 ## How do I know when a transfer is done?
 

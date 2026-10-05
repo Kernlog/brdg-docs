@@ -54,10 +54,16 @@ All options are optional.
 ```ts
 createClient({
   baseUrl: 'https://api.brdg.now/v1', // default
+  apiKey: process.env.BRDG_API_KEY, // partner key, sent as x-brdg-api-key; server-side only
+  retry: true, // retry 429s, and 5xx and network failures on reads, with backoff; off by default
   headers: { 'x-integrator': 'my-app' }, // added to every request
   fetch: customFetch, // defaults to the global fetch
 });
 ```
+
+`apiKey` is for partners calling from a server: with it, the per-IP limit applies to the `userIp` on each request instead of your server. Higher limits are available on request: contact [@kernlog on Telegram](https://t.me/kernlog) or [kernlog@print.world](mailto:kernlog@print.world). See [Higher rate limits and partner access](/api-reference/rate-limits#higher-rate-limits-and-partner-access).
+
+`retry` (`true`, or `{ retries, baseDelayMs, maxDelayMs, maxRetryAfterMs }`) uses exponential backoff with jitter and waits at least what `Retry-After` asks. Reads retry on `429`, `5xx` and network failures. Quote, build and submit retry only on `429 rate_limited`, where nothing was done; any other failure on them is thrown, because a build or submit may have happened. `waitForTransfer` always polls through temporary read failures until its timeout.
 
 ## Errors
 
