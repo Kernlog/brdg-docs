@@ -11,365 +11,26 @@
     }
   ],
   "components": {
-    "schemas": {
-      "BalanceResponse": {
-        "type": "object",
-        "properties": {
-          "atomic": {
-            "type": "string",
-            "nullable": true
-          },
-          "chain": {
-            "type": "string",
-            "enum": [
-              "ethereum",
-              "arbitrum",
-              "optimism",
-              "base",
-              "polygon",
-              "bnb",
-              "avalanche",
-              "linea",
-              "scroll",
-              "zksync",
-              "mantle",
-              "blast",
-              "mode",
-              "gnosis",
-              "celo",
-              "unichain",
-              "sonic",
-              "ink",
-              "plume",
-              "worldchain",
-              "monad",
-              "sei",
-              "xlayer",
-              "plasma",
-              "berachain",
-              "hyperevm",
-              "stable",
-              "robinhood",
-              "arc",
-              "fantom",
-              "zircuit",
-              "lisk",
-              "soneium",
-              "abstract",
-              "taiko",
-              "metis",
-              "moonbeam",
-              "aurora",
-              "cronos",
-              "opbnb",
-              "ronin",
-              "rootstock",
-              "citrea",
-              "botanix",
-              "katana",
-              "solana",
-              "fogo",
-              "eclipse",
-              "bitcoin",
-              "litecoin",
-              "dogecoin",
-              "bitcoincash",
-              "zcash",
-              "dash",
-              "sui",
-              "aptos",
-              "movement",
-              "starknet",
-              "tron",
-              "ton",
-              "stellar",
-              "cardano",
-              "xrpl",
-              "near",
-              "algorand",
-              "polkadot",
-              "assethub",
-              "injective",
-              "noble",
-              "osmosis",
-              "cosmoshub",
-              "hypercore",
-              "lighter"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "failed",
-              "not_configured",
-              "ok",
-              "unsupported"
-            ]
-          },
-          "token": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "atomic",
-          "chain",
-          "status",
-          "token"
-        ]
-      },
-      "BalanceErrorResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "enum": [
-              "unauthorized",
-              "wallet_not_yours"
-            ]
-          },
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "code",
-          "message"
-        ]
-      },
-      "BalanceRequest": {
-        "type": "object",
-        "properties": {
-          "address": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          },
-          "chain": {
-            "type": "string",
-            "enum": [
-              "ethereum",
-              "arbitrum",
-              "optimism",
-              "base",
-              "polygon",
-              "bnb",
-              "avalanche",
-              "linea",
-              "scroll",
-              "zksync",
-              "mantle",
-              "blast",
-              "mode",
-              "gnosis",
-              "celo",
-              "unichain",
-              "sonic",
-              "ink",
-              "plume",
-              "worldchain",
-              "monad",
-              "sei",
-              "xlayer",
-              "plasma",
-              "berachain",
-              "hyperevm",
-              "stable",
-              "robinhood",
-              "arc",
-              "fantom",
-              "zircuit",
-              "lisk",
-              "soneium",
-              "abstract",
-              "taiko",
-              "metis",
-              "moonbeam",
-              "aurora",
-              "cronos",
-              "opbnb",
-              "ronin",
-              "rootstock",
-              "citrea",
-              "botanix",
-              "katana",
-              "solana",
-              "fogo",
-              "eclipse",
-              "bitcoin",
-              "litecoin",
-              "dogecoin",
-              "bitcoincash",
-              "zcash",
-              "dash",
-              "sui",
-              "aptos",
-              "movement",
-              "starknet",
-              "tron",
-              "ton",
-              "stellar",
-              "cardano",
-              "xrpl",
-              "near",
-              "algorand",
-              "polkadot",
-              "assethub",
-              "injective",
-              "noble",
-              "osmosis",
-              "cosmoshub",
-              "hypercore",
-              "lighter"
-            ]
-          },
-          "token": {
-            "type": "string",
-            "nullable": true,
-            "minLength": 1,
-            "maxLength": 128,
-            "default": null
-          }
-        },
-        "required": [
-          "address",
-          "chain"
-        ]
-      },
-      "PortfolioResponse": {
-        "type": "object",
-        "properties": {
-          "rows": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/PortfolioRow"
-            }
-          }
-        },
-        "required": [
-          "rows"
-        ]
-      },
-      "PortfolioRow": {
-        "type": "object",
-        "properties": {
-          "atomic": {
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "failed",
-              "not_configured",
-              "ok",
-              "unsupported"
-            ]
-          }
-        },
-        "required": [
-          "atomic",
-          "status"
-        ]
-      },
-      "PortfolioRequest": {
-        "type": "object",
-        "properties": {
-          "chains": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "ethereum",
-                "arbitrum",
-                "optimism",
-                "base",
-                "polygon",
-                "bnb",
-                "avalanche",
-                "linea",
-                "scroll",
-                "zksync",
-                "mantle",
-                "blast",
-                "mode",
-                "gnosis",
-                "celo",
-                "unichain",
-                "sonic",
-                "ink",
-                "plume",
-                "worldchain",
-                "monad",
-                "sei",
-                "xlayer",
-                "plasma",
-                "berachain",
-                "hyperevm",
-                "stable",
-                "robinhood",
-                "arc",
-                "fantom",
-                "zircuit",
-                "lisk",
-                "soneium",
-                "abstract",
-                "taiko",
-                "metis",
-                "moonbeam",
-                "aurora",
-                "cronos",
-                "opbnb",
-                "ronin",
-                "rootstock",
-                "citrea",
-                "botanix",
-                "katana",
-                "solana",
-                "fogo",
-                "eclipse",
-                "bitcoin",
-                "litecoin",
-                "dogecoin",
-                "bitcoincash",
-                "zcash",
-                "dash",
-                "sui",
-                "aptos",
-                "movement",
-                "starknet",
-                "tron",
-                "ton",
-                "stellar",
-                "cardano",
-                "xrpl",
-                "near",
-                "algorand",
-                "polkadot",
-                "assethub",
-                "injective",
-                "noble",
-                "osmosis",
-                "cosmoshub",
-                "hypercore",
-                "lighter"
-              ]
-            },
-            "maxItems": 73
-          },
-          "address": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          }
-        }
+    "securitySchemes": {
+      "partnerApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-BRDG-Api-Key",
+        "description": "Optional partner key for server integrators. With it, the per-IP rate limit applies to the `userIp` in the body instead of the calling server, under a partner-wide ceiling. Unknown or disabled keys are refused with 401."
       }
     },
+    "schemas": {},
     "parameters": {}
   },
   "paths": {
     "/bridge/quote": {
       "post": {
+        "security": [
+          {},
+          {
+            "partnerApiKey": []
+          }
+        ],
         "summary": "Get quote",
         "description": "Prices a transfer at every venue that serves it and ranks the results by net output. `best` is the quote that `POST /bridge/build` uses by default. `bestByPrice` and `bestByTime` hold the `quoteId` of the cheapest and fastest quotes in `quotes`. Venues that could not quote are listed in `rejected` with a reason. Every `amountOutAtomic` already has the platform fee taken off.\n\nSend `sender`, and send `recipient` when the destination chain uses a different address format. If you call the API from a server on behalf of your users, send each user's IP address as `userIp`. A quote requested with `indicative: true` is for display only and cannot be built.",
         "tags": [
@@ -2099,6 +1760,45 @@
               }
             }
           },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
           "404": {
             "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
@@ -2260,6 +1960,12 @@
     },
     "/bridge/build": {
       "post": {
+        "security": [
+          {},
+          {
+            "partnerApiKey": []
+          }
+        ],
         "summary": "Build transaction",
         "description": "Turns a quote into the unsigned transactions the user signs. BRDG builds `best` unless you pass a `quoteId`. `steps` lists every transaction to sign, in order; the one with `step: \"main\"` is the bridge transaction. On a source chain no wallet can sign for, `steps` is empty and `deposit` says where to send the funds instead. `expectedOutAtomic` matches the `amountOutAtomic` of the quote you built. Building the same `decisionId` again returns the same transfer.",
         "tags": [
@@ -2978,6 +2684,45 @@
               }
             }
           },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
           "404": {
             "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
@@ -3139,6 +2884,12 @@
     },
     "/bridge/transfers/{id}/submit": {
       "post": {
+        "security": [
+          {},
+          {
+            "partnerApiKey": []
+          }
+        ],
         "summary": "Submit transaction",
         "description": "Accepts either a signed transaction for BRDG to broadcast (`signedTransaction`) or the hash of a transaction the wallet already sent (`txHash`). Send exactly one. BRDG decodes the transaction and compares it with the steps it built, and refuses anything that does not match without broadcasting it. Submitting the same transaction again returns the hash on record with `accepted: false`.",
         "tags": [
@@ -3259,6 +3010,45 @@
           },
           "400": {
             "description": "Malformed request, an unknown asset, or a signed transaction that is not what we built",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
             "content": {
               "application/json": {
                 "schema": {
@@ -3785,6 +3575,10 @@
                             "pullSignedGasPriceWei",
                             "pullEffectiveGasPriceWei"
                           ]
+                        },
+                        "refundTo": {
+                          "type": "string",
+                          "nullable": true
                         }
                       },
                       "required": [
@@ -3798,7 +3592,8 @@
                         "balance",
                         "spotTxHash",
                         "spotMovedAt",
-                        "relayGas"
+                        "relayGas",
+                        "refundTo"
                       ],
                       "description": "Set on Hyperliquid deposits through Arbitrum. Reports the Hyperliquid credit."
                     },
@@ -3967,6 +3762,10 @@
                       "type": "integer",
                       "nullable": true
                     },
+                    "estimatedSeconds": {
+                      "type": "integer",
+                      "nullable": true
+                    },
                     "updatedAt": {
                       "type": "integer"
                     },
@@ -4019,6 +3818,7 @@
                     "buildExpiresAtMs",
                     "createdAt",
                     "submittedAt",
+                    "estimatedSeconds",
                     "updatedAt",
                     "completedAt"
                   ]
@@ -4077,6 +3877,45 @@
           },
           "400": {
             "description": "Malformed request, an unknown asset, or a signed transaction that is not what we built",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
             "content": {
               "application/json": {
                 "schema": {
@@ -5368,6 +5207,45 @@
               }
             }
           },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
           "404": {
             "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
@@ -6266,6 +6144,45 @@
               }
             }
           },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
           "404": {
             "description": "No such decision or transfer, or the aggregator is switched off",
             "content": {
@@ -6825,6 +6742,45 @@
           },
           "400": {
             "description": "Malformed request, an unknown asset, or a signed transaction that is not what we built",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
             "content": {
               "application/json": {
                 "schema": {
