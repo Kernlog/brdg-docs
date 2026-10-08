@@ -5,7 +5,11 @@ const API = process.env.BRIDGE_API ?? 'http://localhost:3001';
 const PUBLIC_SERVER = 'https://api.brdg.now/v1';
 const EXAMPLES = new URL('../openapi/examples/', import.meta.url);
 
-const spec = await (await fetch(`${API}/v1/openapi.json`)).json();
+// `BRIDGE_OPENAPI_FILE` reads a document already dumped from the API's own code, for endpoints that
+// are merged but not deployed yet.
+const spec = process.env.BRIDGE_OPENAPI_FILE
+  ? JSON.parse(readFileSync(process.env.BRIDGE_OPENAPI_FILE, 'utf8'))
+  : await (await fetch(`${API}/v1/openapi.json`)).json();
 
 // The public surface: markets, and quote -> build -> submit -> transfer. Everything
 // else the API serves is for the BRDG app itself and is not documented here.
@@ -17,6 +21,9 @@ const PUBLIC_PATHS = [
   '/bridge/build',
   '/bridge/transfers/{id}/submit',
   '/bridge/transfers/{id}',
+  '/fastfill/quote',
+  '/fastfill/build',
+  '/fastfill/transfers/{id}/submit',
 ];
 for (const path of Object.keys(spec.paths)) if (!PUBLIC_PATHS.includes(path)) delete spec.paths[path];
 
@@ -59,6 +66,28 @@ set('/bridge/transfers/{id}', 'get', 'response', example('transfer.json'));
 set('/bridge/source-chains', 'get', 'response', example('source-chains.json'));
 set('/bridge/routes', 'get', 'response', example('routes.json'));
 set('/bridge/venues', 'get', 'response', example('venues.json'));
+set('/fastfill/quote', 'post', 'request', {
+  fromChain: 'base',
+  toChain: 'arbitrum',
+  fromToken: 'USDC',
+  toToken: 'USDC',
+  amountAtomic: '10000000',
+  sender: '0x58E602386DB134b1F9B1d6d390C11A2B7b486677',
+});
+set('/fastfill/build', 'post', 'request', { decisionId: '5c7e4e05-1d2a-4f0b-9c3e-7a1b2c3d4e5f' });
+set('/fastfill/build', 'post', 'response', example('fastfill-build.json'));
+set('/fastfill/transfers/{id}/submit', 'post', 'request', {
+  signature:
+    '0xedc90fdd27654dd49ac1087901450c9c5fdf444943f61faa8d787bee86304d821f06a5db4a67eddf5cf286014d6ec8bd33c64f9e072045a9f3c5e50cc28960fc1b',
+});
+set('/fastfill/transfers/{id}/submit', 'post', 'response', {
+  transferId: '6f1d2c0a-4b7e-4c55-9a1e-2f0e8c3b7d41',
+  status: 'SUBMITTED',
+  txHash: '0x8f3c2b1a9d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a',
+  step: 'main',
+  accepted: true,
+  verification: 'pending',
+});
 
 // Operation summaries and descriptions, written for an integrator.
 const describe = (path, method, summary, description) => {
@@ -78,6 +107,12 @@ describe('/bridge/build', 'post', 'Build transaction',
   'Turns a quote into the unsigned transactions the user signs. BRDG builds `best` unless you pass a `quoteId`. `steps` lists every transaction to sign, in order; the one with `step: "main"` is the bridge transaction. On a source chain no wallet can sign for, `steps` is empty and `deposit` says where to send the funds instead. `expectedOutAtomic` matches the `amountOutAtomic` of the quote you built. Building the same `decisionId` again returns the same transfer.');
 describe('/bridge/transfers/{id}/submit', 'post', 'Submit transaction',
   'Accepts either a signed transaction for BRDG to broadcast (`signedTransaction`) or the hash of a transaction the wallet already sent (`txHash`). Send exactly one. BRDG decodes the transaction and compares it with the steps it built, and refuses anything that does not match without broadcasting it. Submitting the same transaction again returns the hash on record with `accepted: false`.');
+describe('/fastfill/quote', 'post', 'Get fast fill quote',
+  'Prices a gasless transfer: the venue fills the destination from its own liquidity and its relayer pays the source gas, so the user signs one message and holds no gas. Only venues with a fast fill lane are asked, and the table is ranked by net output like `POST /bridge/quote`. Every `amountOutAtomic` already has the venue\'s gas charge and the platform fee taken off. Always a firm quote. `privacy: true` is refused with `fast_fill_not_private`. An empty table carries `emptyReason: "no_fast_fill_route"`.');
+describe('/fastfill/build', 'post', 'Build fast fill',
+  'Turns a fast fill quote into what the user signs. `steps` ends with one `vm: "sign"` step whose `payload` holds an EIP-712 message: sign `domain`, `types`, `primaryType` and `message` with `eth_signTypedData_v4` from the wallet in `owner`. For a token that is not USDC, `steps` can start with one `approve` to Permit2, which the wallet sends once; later fast fills of that token need only the signature. A quote from `POST /bridge/quote` is refused with `not_fast_fill`. Building the same `decisionId` again returns the same transfer.');
+describe('/fastfill/transfers/{id}/submit', 'post', 'Submit fast fill signature',
+  'Checks that the signature recovers to `owner` over exactly the built message, then hands it to the venue\'s relayer, which sends the source transaction and pays its gas. `txHash` is that transaction once the venue names it, usually within seconds. `txHash: null` with `status: "PENDING"` means the relayer holds the signature and has not broadcast yet; BRDG keeps tracking it, and submitting again is safe. Send the one time Permit2 `approve` through `POST /bridge/transfers/{id}/submit` with `step: "approve"` first.');
 describe('/bridge/transfers/{id}', 'get', 'Get transfer',
   'Returns one transfer. Anyone with the transfer id can read it. Poll until `status` is `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` or `ABANDONED`.');
 
@@ -112,6 +147,25 @@ const FIELDS = {
     signedTransaction: 'The signed transaction, for BRDG to broadcast. Send this or `txHash`.',
     txHash: 'The hash or signature of a transaction the wallet already sent. Send this or `signedTransaction`.',
     step: 'Which built step this transaction is. Usually `main`.',
+    userIp: 'The end user\'s IP address, if the quote carried one.',
+  },
+  '/fastfill/quote post request': {
+    fromChain: 'Chain key the transfer starts from. Must be an EVM chain.',
+    toChain: 'Chain key the transfer ends on. Not `hypercore`.',
+    fromToken: 'Token to send: a symbol such as `USDC` or a token address. Not the native token.',
+    toToken: 'Token to receive: a symbol, a token address, or `null` for the native token.',
+    amountAtomic: 'Amount in the token\'s smallest unit, as a string.',
+    sender: 'Wallet the funds leave from. It signs the fast fill message.',
+    recipient: 'Wallet that receives the funds. Defaults to `sender` when both chains use the same address format.',
+    privacy: 'Must be `false` or omitted. A fast fill is never private.',
+    userIp: 'The end user\'s IP address, when you call the API from a server on their behalf.',
+  },
+  '/fastfill/build post request': {
+    decisionId: 'The `decisionId` from the fast fill quote response.',
+    quoteId: 'Build this quote instead of `best`.',
+  },
+  '/fastfill/transfers/{id}/submit post request': {
+    signature: 'The wallet\'s 65 byte EIP-712 signature over the build\'s message, as 0x hex.',
     userIp: 'The end user\'s IP address, if the quote carried one.',
   },
   '/bridge/build post 200': {

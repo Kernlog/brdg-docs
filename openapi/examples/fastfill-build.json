@@ -1,0 +1,73 @@
+{
+  "transferId": "6f1d2c0a-4b7e-4c55-9a1e-2f0e8c3b7d41",
+  "venue": "relay",
+  "steps": [
+    {
+      "vm": "sign",
+      "step": "main",
+      "scheme": "eip712",
+      "payload": {
+        "owner": "0x58E602386DB134b1F9B1d6d390C11A2B7b486677",
+        "domain": {
+          "name": "USD Coin",
+          "version": "2",
+          "chainId": 8453,
+          "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        },
+        "types": {
+          "ReceiveWithAuthorization": [
+            {
+              "name": "from",
+              "type": "address"
+            },
+            {
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "name": "validAfter",
+              "type": "uint256"
+            },
+            {
+              "name": "validBefore",
+              "type": "uint256"
+            },
+            {
+              "name": "nonce",
+              "type": "bytes32"
+            }
+          ]
+        },
+        "primaryType": "ReceiveWithAuthorization",
+        "message": {
+          "from": "0x58E602386DB134b1F9B1d6d390C11A2B7b486677",
+          "to": "0xccc88a9d1b4ed6b0eaba998850414b24f1c315be",
+          "value": "10000000",
+          "validAfter": 0,
+          "validBefore": 1791484288,
+          "nonce": "0x8ee9dabf3ef81e81899d9c395fa7d681a7435a88d0deb19916b7b9db027a8f53"
+        },
+        "venueSubmit": {
+          "endpoint": "/execute/permits",
+          "body": {
+            "kind": "eip3009",
+            "requestId": "0x17914836885153788c87ec28425d97ef85bd8916e6bb58e8a52d45c0fd169cd6",
+            "api": "swap"
+          }
+        }
+      }
+    }
+  ],
+  "expiresAt": 1791483388000,
+  "amountInAtomic": "10000000",
+  "expectedOutAtomic": "9968392",
+  "minOutAtomic": "9769024",
+  "requoted": false,
+  "feeCapture": "venue-param",
+  "referralCapture": null,
+  "feeBasis": "carved"
+}

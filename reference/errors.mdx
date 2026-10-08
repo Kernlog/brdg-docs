@@ -84,6 +84,21 @@ A body that is not valid JSON gets the same response.
 | `user_ip_mismatch` | 409 | The `userIp` on submit is not the one the venue created the order for. Submit from the same end user. |
 | `broadcast_failed` | 502 | The network did not accept the transaction. The transfer is unchanged, so you can sign and submit again. |
 
+### Fast fill
+
+| Code | Status | Meaning and what to do |
+| --- | --- | --- |
+| `fast_fill_not_private` | 400 | A fast fill is never private. Drop `privacy: true`. |
+| `fast_fill_unsupported_corridor` | 400 | Fast fill does not reach this destination. Use `POST /bridge/quote`. |
+| `not_fast_fill` | 409 | The quote or transfer is not a fast fill. Use the ordinary build or submit. |
+| `signature_mismatch` | 400 | The signature is not `owner`'s over the built message. Nothing was sent. |
+| `smart_wallet_unsupported` | 400 | Smart contract wallets cannot sign a fast fill yet. Use a standard wallet or the ordinary route. |
+| `fast_fill_already_signed` | 409 | The transfer already has a different signature. Submit that one again. |
+| `submit_in_progress` | 409 | Another submit for this transfer is running. Retry after `retryAfterMs`. |
+| `fast_fill_refused` | 409 | The venue refused the signature. Nothing was sent. Quote and build again. |
+| `fast_fill_unknown_result` | 502 | The venue did not answer and may hold the signature. Submit the same signature again. |
+| `fast_fill_submit` | 409 | Submit a fast fill's signature to `POST /fastfill/transfers/{id}/submit`. |
+
 ### Any endpoint
 
 | Code | Status | Meaning and what to do |

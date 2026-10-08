@@ -749,8 +749,12 @@
                       "enum": [
                         "no_private_route",
                         "not_priceable",
+                        "no_fast_fill_route",
                         null
                       ]
+                    },
+                    "fastFill": {
+                      "type": "boolean"
                     },
                     "fees": {
                       "type": "object",
@@ -3004,6 +3008,2889 @@
                     "accepted",
                     "verification"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request, an unknown asset, or a signed transaction that is not what we built",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such decision or transfer, or the aggregator is switched off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The decision is indicative, the quote expired or drifted, the venue is ineligible, or execution is switched off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited; retry after `retryAfterMs`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The venue refused to build, or the broadcast was rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fastfill/quote": {
+      "post": {
+        "security": [
+          {},
+          {
+            "partnerApiKey": []
+          }
+        ],
+        "summary": "Get fast fill quote",
+        "description": "Prices a gasless transfer: the venue fills the destination from its own liquidity and its relayer pays the source gas, so the user signs one message and holds no gas. Only venues with a fast fill lane are asked, and the table is ranked by net output like `POST /bridge/quote`. Every `amountOutAtomic` already has the venue's gas charge and the platform fee taken off. Always a firm quote. `privacy: true` is refused with `fast_fill_not_private`. An empty table carries `emptyReason: \"no_fast_fill_route\"`.",
+        "tags": [
+          "fastfill"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fromChain": {
+                    "type": "string",
+                    "enum": [
+                      "ethereum",
+                      "arbitrum",
+                      "optimism",
+                      "base",
+                      "polygon",
+                      "bnb",
+                      "avalanche",
+                      "linea",
+                      "scroll",
+                      "zksync",
+                      "mantle",
+                      "blast",
+                      "mode",
+                      "gnosis",
+                      "celo",
+                      "unichain",
+                      "sonic",
+                      "ink",
+                      "plume",
+                      "worldchain",
+                      "monad",
+                      "sei",
+                      "xlayer",
+                      "plasma",
+                      "berachain",
+                      "hyperevm",
+                      "stable",
+                      "robinhood",
+                      "arc",
+                      "fantom",
+                      "zircuit",
+                      "lisk",
+                      "soneium",
+                      "abstract",
+                      "taiko",
+                      "metis",
+                      "moonbeam",
+                      "aurora",
+                      "cronos",
+                      "opbnb",
+                      "ronin",
+                      "rootstock",
+                      "citrea",
+                      "botanix",
+                      "katana",
+                      "solana",
+                      "fogo",
+                      "eclipse",
+                      "bitcoin",
+                      "litecoin",
+                      "dogecoin",
+                      "bitcoincash",
+                      "zcash",
+                      "dash",
+                      "sui",
+                      "aptos",
+                      "movement",
+                      "starknet",
+                      "tron",
+                      "ton",
+                      "stellar",
+                      "cardano",
+                      "xrpl",
+                      "near",
+                      "algorand",
+                      "polkadot",
+                      "assethub",
+                      "injective",
+                      "noble",
+                      "osmosis",
+                      "cosmoshub",
+                      "hypercore",
+                      "lighter"
+                    ],
+                    "description": "Chain key the transfer starts from. Must be an EVM chain."
+                  },
+                  "toChain": {
+                    "type": "string",
+                    "enum": [
+                      "ethereum",
+                      "arbitrum",
+                      "optimism",
+                      "base",
+                      "polygon",
+                      "bnb",
+                      "avalanche",
+                      "linea",
+                      "scroll",
+                      "zksync",
+                      "mantle",
+                      "blast",
+                      "mode",
+                      "gnosis",
+                      "celo",
+                      "unichain",
+                      "sonic",
+                      "ink",
+                      "plume",
+                      "worldchain",
+                      "monad",
+                      "sei",
+                      "xlayer",
+                      "plasma",
+                      "berachain",
+                      "hyperevm",
+                      "stable",
+                      "robinhood",
+                      "arc",
+                      "fantom",
+                      "zircuit",
+                      "lisk",
+                      "soneium",
+                      "abstract",
+                      "taiko",
+                      "metis",
+                      "moonbeam",
+                      "aurora",
+                      "cronos",
+                      "opbnb",
+                      "ronin",
+                      "rootstock",
+                      "citrea",
+                      "botanix",
+                      "katana",
+                      "solana",
+                      "fogo",
+                      "eclipse",
+                      "bitcoin",
+                      "litecoin",
+                      "dogecoin",
+                      "bitcoincash",
+                      "zcash",
+                      "dash",
+                      "sui",
+                      "aptos",
+                      "movement",
+                      "starknet",
+                      "tron",
+                      "ton",
+                      "stellar",
+                      "cardano",
+                      "xrpl",
+                      "near",
+                      "algorand",
+                      "polkadot",
+                      "assethub",
+                      "injective",
+                      "noble",
+                      "osmosis",
+                      "cosmoshub",
+                      "hypercore",
+                      "lighter"
+                    ],
+                    "description": "Chain key the transfer ends on. Not `hypercore`."
+                  },
+                  "fromToken": {
+                    "type": "string",
+                    "nullable": true,
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "default": null,
+                    "description": "Token to send: a symbol such as `USDC` or a token address. Not the native token."
+                  },
+                  "toToken": {
+                    "type": "string",
+                    "nullable": true,
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "default": null,
+                    "description": "Token to receive: a symbol, a token address, or `null` for the native token."
+                  },
+                  "amountAtomic": {
+                    "type": "string",
+                    "pattern": "^[1-9][0-9]{0,77}$",
+                    "description": "Amount in the token's smallest unit, as a string."
+                  },
+                  "tradeType": {
+                    "type": "string",
+                    "enum": [
+                      "EXACT_IN",
+                      "MIN_OUT",
+                      "EXACT_OUT"
+                    ],
+                    "default": "EXACT_IN"
+                  },
+                  "slippageBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5000,
+                    "default": 100
+                  },
+                  "sender": {
+                    "type": "string",
+                    "minLength": 26,
+                    "maxLength": 600,
+                    "description": "Wallet the funds leave from. It signs the fast fill message."
+                  },
+                  "recipient": {
+                    "type": "string",
+                    "minLength": 26,
+                    "maxLength": 600,
+                    "description": "Wallet that receives the funds. Defaults to `sender` when both chains use the same address format."
+                  },
+                  "refundAddress": {
+                    "type": "string",
+                    "minLength": 26,
+                    "maxLength": 600
+                  },
+                  "privacy": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Must be `false` or omitted. A fast fill is never private."
+                  },
+                  "userIp": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "ip"
+                      },
+                      {
+                        "type": "string",
+                        "format": "ip"
+                      }
+                    ],
+                    "description": "The end user's IP address, when you call the API from a server on their behalf."
+                  }
+                },
+                "required": [
+                  "fromChain",
+                  "toChain",
+                  "amountAtomic"
+                ]
+              },
+              "example": {
+                "fromChain": "base",
+                "toChain": "arbitrum",
+                "fromToken": "USDC",
+                "toToken": "USDC",
+                "amountAtomic": "10000000",
+                "sender": "0x58E602386DB134b1F9B1d6d390C11A2B7b486677"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The ranked fast-fill table, `fastFill: true`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "decisionId": {
+                      "type": "string"
+                    },
+                    "quoteSessionId": {
+                      "type": "string"
+                    },
+                    "best": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "venue": {
+                          "type": "string"
+                        },
+                        "executable": {
+                          "type": "boolean"
+                        },
+                        "eligibility": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "not_executable",
+                            "ttl_too_short",
+                            "unpriced",
+                            "below_min",
+                            "above_max",
+                            "venue_error",
+                            "implausible",
+                            "stale"
+                          ]
+                        },
+                        "amountInAtomic": {
+                          "type": "string"
+                        },
+                        "amountOutAtomic": {
+                          "type": "string"
+                        },
+                        "minAmountOutAtomic": {
+                          "type": "string"
+                        },
+                        "netOutAtomic": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "netInAtomic": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "rankBasis": {
+                          "type": "string",
+                          "nullable": true,
+                          "enum": [
+                            "netOutAtomic",
+                            "netInAtomic",
+                            null
+                          ]
+                        },
+                        "rankAtomic": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "fees": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "PROTOCOL",
+                                  "SOLVER",
+                                  "ORIGIN_GAS",
+                                  "DESTINATION_GAS",
+                                  "APP",
+                                  "VENUE_OTHER"
+                                ]
+                              },
+                              "tokenAddress": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "decimals": {
+                                "type": "integer"
+                              },
+                              "amountAtomic": {
+                                "type": "string"
+                              },
+                              "amountUsd": {
+                                "type": "number"
+                              },
+                              "deductedFrom": {
+                                "type": "string",
+                                "enum": [
+                                  "input",
+                                  "output",
+                                  "gas"
+                                ]
+                              },
+                              "label": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "tokenAddress",
+                              "decimals",
+                              "amountAtomic",
+                              "deductedFrom"
+                            ]
+                          }
+                        },
+                        "feeBps": {
+                          "type": "integer"
+                        },
+                        "feeAmountAtomic": {
+                          "type": "string"
+                        },
+                        "referralFeeAmountAtomic": {
+                          "type": "string"
+                        },
+                        "netOutAfterFeeAtomic": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "amountInNetAtomic": {
+                          "type": "string"
+                        },
+                        "tierSavedBps": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "estimatedSeconds": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "expiresAt": {
+                          "type": "integer"
+                        },
+                        "quoteId": {
+                          "type": "string"
+                        },
+                        "postStep": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "hypercore_deposit"
+                              ]
+                            },
+                            "chain": {
+                              "type": "string",
+                              "enum": [
+                                "arbitrum"
+                              ]
+                            },
+                            "vm": {
+                              "type": "string",
+                              "enum": [
+                                "evm"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "chain",
+                            "vm"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "venue",
+                        "executable",
+                        "eligibility",
+                        "amountInAtomic",
+                        "amountOutAtomic",
+                        "minAmountOutAtomic",
+                        "netOutAtomic",
+                        "netInAtomic",
+                        "rankBasis",
+                        "rankAtomic",
+                        "fees",
+                        "feeBps",
+                        "feeAmountAtomic",
+                        "referralFeeAmountAtomic",
+                        "netOutAfterFeeAtomic",
+                        "amountInNetAtomic",
+                        "tierSavedBps",
+                        "estimatedSeconds",
+                        "expiresAt",
+                        "quoteId",
+                        "postStep"
+                      ]
+                    },
+                    "bestByPrice": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "bestByTime": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "quotes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "venue": {
+                            "type": "string"
+                          },
+                          "executable": {
+                            "type": "boolean"
+                          },
+                          "eligibility": {
+                            "type": "string",
+                            "enum": [
+                              "ok",
+                              "not_executable",
+                              "ttl_too_short",
+                              "unpriced",
+                              "below_min",
+                              "above_max",
+                              "venue_error",
+                              "implausible",
+                              "stale"
+                            ]
+                          },
+                          "amountInAtomic": {
+                            "type": "string"
+                          },
+                          "amountOutAtomic": {
+                            "type": "string"
+                          },
+                          "minAmountOutAtomic": {
+                            "type": "string"
+                          },
+                          "netOutAtomic": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "netInAtomic": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "rankBasis": {
+                            "type": "string",
+                            "nullable": true,
+                            "enum": [
+                              "netOutAtomic",
+                              "netInAtomic",
+                              null
+                            ]
+                          },
+                          "rankAtomic": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "fees": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "kind": {
+                                  "type": "string",
+                                  "enum": [
+                                    "PROTOCOL",
+                                    "SOLVER",
+                                    "ORIGIN_GAS",
+                                    "DESTINATION_GAS",
+                                    "APP",
+                                    "VENUE_OTHER"
+                                  ]
+                                },
+                                "tokenAddress": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "decimals": {
+                                  "type": "integer"
+                                },
+                                "amountAtomic": {
+                                  "type": "string"
+                                },
+                                "amountUsd": {
+                                  "type": "number"
+                                },
+                                "deductedFrom": {
+                                  "type": "string",
+                                  "enum": [
+                                    "input",
+                                    "output",
+                                    "gas"
+                                  ]
+                                },
+                                "label": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "kind",
+                                "tokenAddress",
+                                "decimals",
+                                "amountAtomic",
+                                "deductedFrom"
+                              ]
+                            }
+                          },
+                          "feeBps": {
+                            "type": "integer"
+                          },
+                          "feeAmountAtomic": {
+                            "type": "string"
+                          },
+                          "referralFeeAmountAtomic": {
+                            "type": "string"
+                          },
+                          "netOutAfterFeeAtomic": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "amountInNetAtomic": {
+                            "type": "string"
+                          },
+                          "tierSavedBps": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "estimatedSeconds": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "expiresAt": {
+                            "type": "integer"
+                          },
+                          "quoteId": {
+                            "type": "string"
+                          },
+                          "postStep": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "hypercore_deposit"
+                                ]
+                              },
+                              "chain": {
+                                "type": "string",
+                                "enum": [
+                                  "arbitrum"
+                                ]
+                              },
+                              "vm": {
+                                "type": "string",
+                                "enum": [
+                                  "evm"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "chain",
+                              "vm"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "venue",
+                          "executable",
+                          "eligibility",
+                          "amountInAtomic",
+                          "amountOutAtomic",
+                          "minAmountOutAtomic",
+                          "netOutAtomic",
+                          "netInAtomic",
+                          "rankBasis",
+                          "rankAtomic",
+                          "fees",
+                          "feeBps",
+                          "feeAmountAtomic",
+                          "referralFeeAmountAtomic",
+                          "netOutAfterFeeAtomic",
+                          "amountInNetAtomic",
+                          "tierSavedBps",
+                          "estimatedSeconds",
+                          "expiresAt",
+                          "quoteId",
+                          "postStep"
+                        ]
+                      }
+                    },
+                    "amountInNetAtomic": {
+                      "type": "string"
+                    },
+                    "rejected": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "venue": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "venue",
+                          "code",
+                          "message"
+                        ]
+                      }
+                    },
+                    "privacy": {
+                      "type": "boolean"
+                    },
+                    "emptyReason": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "no_private_route",
+                        "not_priceable",
+                        "no_fast_fill_route",
+                        null
+                      ]
+                    },
+                    "fastFill": {
+                      "type": "boolean"
+                    },
+                    "fees": {
+                      "type": "object",
+                      "properties": {
+                        "platform": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "bps": {
+                              "type": "integer"
+                            },
+                            "amountAtomic": {
+                              "type": "string"
+                            },
+                            "asset": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "tierSavedBps": {
+                              "type": "integer",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "bps",
+                            "amountAtomic",
+                            "asset",
+                            "tierSavedBps"
+                          ]
+                        },
+                        "referral": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "bps": {
+                              "type": "integer"
+                            },
+                            "amountAtomic": {
+                              "type": "string"
+                            },
+                            "asset": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "wallet": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "bps",
+                            "amountAtomic",
+                            "asset",
+                            "wallet"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "platform",
+                        "referral"
+                      ]
+                    },
+                    "splitPlan": {
+                      "type": "object",
+                      "properties": {
+                        "splitGroupId": {
+                          "type": "string"
+                        },
+                        "legs": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "venue": {
+                                "type": "string"
+                              },
+                              "decisionId": {
+                                "type": "string"
+                              },
+                              "amountInAtomic": {
+                                "type": "string"
+                              },
+                              "amountInNetAtomic": {
+                                "type": "string"
+                              },
+                              "amountOutAtomic": {
+                                "type": "string"
+                              },
+                              "expiresAt": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "venue",
+                              "decisionId",
+                              "amountInAtomic",
+                              "amountInNetAtomic",
+                              "amountOutAtomic",
+                              "expiresAt"
+                            ]
+                          },
+                          "minItems": 2
+                        },
+                        "totalInAtomic": {
+                          "type": "string"
+                        },
+                        "improvementBps": {
+                          "type": "number"
+                        },
+                        "maxSignatures": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "exclusiveMinimum": true
+                        },
+                        "expiresAt": {
+                          "type": "integer"
+                        },
+                        "indicative": {
+                          "type": "boolean"
+                        },
+                        "baseline": {
+                          "type": "object",
+                          "properties": {
+                            "venue": {
+                              "type": "string"
+                            },
+                            "netOut": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "venue",
+                            "netOut"
+                          ]
+                        },
+                        "measuredImpactBps": {
+                          "type": "number"
+                        },
+                        "fees": {
+                          "type": "object",
+                          "properties": {
+                            "bps": {
+                              "type": "integer"
+                            },
+                            "amountInNetAtomic": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "bps",
+                            "amountInNetAtomic"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "splitGroupId",
+                        "legs",
+                        "totalInAtomic",
+                        "improvementBps",
+                        "maxSignatures",
+                        "expiresAt",
+                        "indicative",
+                        "baseline",
+                        "measuredImpactBps",
+                        "fees"
+                      ]
+                    },
+                    "twapPlan": {
+                      "type": "object",
+                      "properties": {
+                        "slices": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "amountInAtomic": {
+                                "type": "string"
+                              },
+                              "amountInNetAtomic": {
+                                "type": "string"
+                              },
+                              "offsetSeconds": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "amountInAtomic",
+                              "amountInNetAtomic",
+                              "offsetSeconds"
+                            ]
+                          },
+                          "minItems": 2
+                        },
+                        "intervalSeconds": {
+                          "type": "integer"
+                        },
+                        "totalInAtomic": {
+                          "type": "string"
+                        },
+                        "improvementBps": {
+                          "type": "number"
+                        },
+                        "residualImpactBps": {
+                          "type": "number"
+                        },
+                        "sliceImpactBps": {
+                          "type": "number"
+                        },
+                        "referenceVenue": {
+                          "type": "string"
+                        },
+                        "fees": {
+                          "type": "object",
+                          "properties": {
+                            "bps": {
+                              "type": "integer"
+                            },
+                            "amountInNetAtomic": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "bps",
+                            "amountInNetAtomic"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "slices",
+                        "intervalSeconds",
+                        "totalInAtomic",
+                        "improvementBps",
+                        "residualImpactBps",
+                        "sliceImpactBps",
+                        "referenceVenue",
+                        "fees"
+                      ]
+                    },
+                    "planReason": {
+                      "type": "string",
+                      "enum": [
+                        "below_floor",
+                        "single_venue_best",
+                        "no_improvement"
+                      ]
+                    },
+                    "expiresAt": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "decidedAt": {
+                      "type": "integer"
+                    },
+                    "elapsedMs": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "decisionId",
+                    "quoteSessionId",
+                    "best",
+                    "bestByPrice",
+                    "bestByTime",
+                    "quotes",
+                    "amountInNetAtomic",
+                    "rejected",
+                    "privacy",
+                    "emptyReason",
+                    "fees",
+                    "expiresAt",
+                    "decidedAt",
+                    "elapsedMs"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request, an unknown asset, or a signed transaction that is not what we built",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such decision or transfer, or the aggregator is switched off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The decision is indicative, the quote expired or drifted, the venue is ineligible, or execution is switched off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited; retry after `retryAfterMs`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The venue refused to build, or the broadcast was rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fastfill/build": {
+      "post": {
+        "security": [
+          {},
+          {
+            "partnerApiKey": []
+          }
+        ],
+        "summary": "Build fast fill",
+        "description": "Turns a fast fill quote into what the user signs. `steps` ends with one `vm: \"sign\"` step whose `payload` holds an EIP-712 message: sign `domain`, `types`, `primaryType` and `message` with `eth_signTypedData_v4` from the wallet in `owner`. For a token that is not USDC, `steps` can start with one `approve` to Permit2, which the wallet sends once; later fast fills of that token need only the signature. A quote from `POST /bridge/quote` is refused with `not_fast_fill`. Building the same `decisionId` again returns the same transfer.",
+        "tags": [
+          "fastfill"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "decisionId": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                    "description": "The `decisionId` from the fast fill quote response."
+                  },
+                  "venue": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "quoteId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "Build this quote instead of `best`."
+                  },
+                  "userIp": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "ip"
+                      },
+                      {
+                        "type": "string",
+                        "format": "ip"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "decisionId"
+                ]
+              },
+              "example": {
+                "decisionId": "5c7e4e05-1d2a-4f0b-9c3e-7a1b2c3d4e5f"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The transfer id and its signature step",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "transferId": {
+                      "type": "string"
+                    },
+                    "venue": {
+                      "type": "string"
+                    },
+                    "steps": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "vm": {
+                                "type": "string",
+                                "enum": [
+                                  "evm"
+                                ]
+                              },
+                              "step": {
+                                "type": "string",
+                                "enum": [
+                                  "approve",
+                                  "fee",
+                                  "main",
+                                  "redeem"
+                                ]
+                              },
+                              "chainId": {
+                                "type": "integer"
+                              },
+                              "to": {
+                                "type": "string"
+                              },
+                              "data": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              },
+                              "gasLimit": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "vm",
+                              "step",
+                              "chainId",
+                              "to",
+                              "data",
+                              "value"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "vm": {
+                                "type": "string",
+                                "enum": [
+                                  "svm"
+                                ]
+                              },
+                              "step": {
+                                "type": "string",
+                                "enum": [
+                                  "approve",
+                                  "fee",
+                                  "main",
+                                  "redeem"
+                                ]
+                              },
+                              "serializedTx": {
+                                "type": "string"
+                              },
+                              "encoding": {
+                                "type": "string",
+                                "enum": [
+                                  "base64",
+                                  "hex"
+                                ]
+                              },
+                              "version": {
+                                "type": "string",
+                                "enum": [
+                                  "v0",
+                                  "legacy"
+                                ]
+                              },
+                              "setPriorityFee": {
+                                "type": "boolean"
+                              },
+                              "refreshBlockhash": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "vm",
+                              "step",
+                              "serializedTx",
+                              "encoding",
+                              "version",
+                              "setPriorityFee",
+                              "refreshBlockhash"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "vm": {
+                                "type": "string",
+                                "enum": [
+                                  "deposit-address"
+                                ]
+                              },
+                              "step": {
+                                "type": "string",
+                                "enum": [
+                                  "approve",
+                                  "fee",
+                                  "main",
+                                  "redeem"
+                                ]
+                              },
+                              "venueChainId": {
+                                "type": "string"
+                              },
+                              "address": {
+                                "type": "string"
+                              },
+                              "memo": {
+                                "type": "string"
+                              },
+                              "tokenAddress": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "exactAmountAtomic": {
+                                "type": "string"
+                              },
+                              "expiresAt": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "vm",
+                              "step",
+                              "venueChainId",
+                              "address",
+                              "tokenAddress",
+                              "exactAmountAtomic",
+                              "expiresAt"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "vm": {
+                                "type": "string",
+                                "enum": [
+                                  "sign"
+                                ]
+                              },
+                              "step": {
+                                "type": "string",
+                                "enum": [
+                                  "approve",
+                                  "fee",
+                                  "main",
+                                  "redeem"
+                                ]
+                              },
+                              "scheme": {
+                                "type": "string",
+                                "enum": [
+                                  "eip712",
+                                  "eip191",
+                                  "ed25519",
+                                  "nep413"
+                                ]
+                              },
+                              "payload": {
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "vm",
+                              "step",
+                              "scheme"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "vm": {
+                                "type": "string",
+                                "enum": [
+                                  "utxo"
+                                ]
+                              },
+                              "step": {
+                                "type": "string",
+                                "enum": [
+                                  "approve",
+                                  "fee",
+                                  "main",
+                                  "redeem"
+                                ]
+                              },
+                              "outputs": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "address": {
+                                      "type": "string"
+                                    },
+                                    "valueSats": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "address",
+                                    "valueSats"
+                                  ]
+                                }
+                              },
+                              "memo": {
+                                "type": "string"
+                              },
+                              "feeRateSatsPerVbyte": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "vm",
+                              "step",
+                              "outputs"
+                            ]
+                          },
+                          {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "vm": {
+                                    "type": "string",
+                                    "enum": [
+                                      "tron"
+                                    ]
+                                  },
+                                  "step": {
+                                    "type": "string",
+                                    "enum": [
+                                      "approve",
+                                      "fee",
+                                      "main",
+                                      "redeem"
+                                    ]
+                                  },
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "call"
+                                    ]
+                                  },
+                                  "contract": {
+                                    "type": "string"
+                                  },
+                                  "data": {
+                                    "type": "string"
+                                  },
+                                  "callValueSun": {
+                                    "type": "string"
+                                  },
+                                  "feeLimitSun": {
+                                    "type": "string",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "vm",
+                                  "step",
+                                  "kind",
+                                  "contract",
+                                  "data",
+                                  "callValueSun",
+                                  "feeLimitSun"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "vm": {
+                                    "type": "string",
+                                    "enum": [
+                                      "tron"
+                                    ]
+                                  },
+                                  "step": {
+                                    "type": "string",
+                                    "enum": [
+                                      "approve",
+                                      "fee",
+                                      "main",
+                                      "redeem"
+                                    ]
+                                  },
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "transfer"
+                                    ]
+                                  },
+                                  "toAddress": {
+                                    "type": "string"
+                                  },
+                                  "amountSun": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "vm",
+                                  "step",
+                                  "kind",
+                                  "toAddress",
+                                  "amountSun"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "vm": {
+                                    "type": "string",
+                                    "enum": [
+                                      "tron"
+                                    ]
+                                  },
+                                  "step": {
+                                    "type": "string",
+                                    "enum": [
+                                      "approve",
+                                      "fee",
+                                      "main",
+                                      "redeem"
+                                    ]
+                                  },
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "built"
+                                    ]
+                                  },
+                                  "raw": {
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "vm",
+                                  "step",
+                                  "kind"
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "vm": {
+                                "type": "string",
+                                "enum": [
+                                  "unsupported"
+                                ]
+                              },
+                              "step": {
+                                "type": "string",
+                                "enum": [
+                                  "main"
+                                ]
+                              },
+                              "reason": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "vm",
+                              "step",
+                              "reason"
+                            ]
+                          }
+                        ]
+                      }
+                    },
+                    "deposit": {
+                      "type": "object",
+                      "properties": {
+                        "address": {
+                          "type": "string"
+                        },
+                        "amountAtomic": {
+                          "type": "string"
+                        },
+                        "memo": {
+                          "type": "string"
+                        },
+                        "deadlineMs": {
+                          "type": "integer"
+                        },
+                        "tokenAddress": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "chainKey": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "address",
+                        "amountAtomic",
+                        "deadlineMs",
+                        "tokenAddress",
+                        "chainKey"
+                      ]
+                    },
+                    "expiresAt": {
+                      "type": "integer"
+                    },
+                    "amountInAtomic": {
+                      "type": "string"
+                    },
+                    "expectedOutAtomic": {
+                      "type": "string"
+                    },
+                    "minOutAtomic": {
+                      "type": "string"
+                    },
+                    "feeCapture": {
+                      "type": "string",
+                      "enum": [
+                        "venue-param",
+                        "merged",
+                        "separate-step",
+                        "batch",
+                        "none"
+                      ]
+                    },
+                    "referralCapture": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "merged",
+                        "batch",
+                        "none",
+                        null
+                      ]
+                    },
+                    "feeBasis": {
+                      "type": "string",
+                      "enum": [
+                        "carved",
+                        "added"
+                      ]
+                    },
+                    "feeBatch": {
+                      "type": "object",
+                      "properties": {
+                        "chainId": {
+                          "type": "integer"
+                        },
+                        "stepIndexes": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        }
+                      },
+                      "required": [
+                        "chainId",
+                        "stepIndexes"
+                      ]
+                    },
+                    "permit": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "hypercore_deposit"
+                          ]
+                        },
+                        "owner": {
+                          "type": "string"
+                        },
+                        "spender": {
+                          "type": "string"
+                        },
+                        "valueAtomic": {
+                          "type": "string"
+                        },
+                        "nonce": {
+                          "type": "string"
+                        },
+                        "deadline": {
+                          "type": "string"
+                        },
+                        "typedData": {
+                          "type": "object",
+                          "properties": {
+                            "domain": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "type": "string"
+                                },
+                                "chainId": {
+                                  "type": "integer"
+                                },
+                                "verifyingContract": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "version",
+                                "chainId",
+                                "verifyingContract"
+                              ]
+                            },
+                            "types": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "type"
+                                  ]
+                                }
+                              }
+                            },
+                            "primaryType": {
+                              "type": "string",
+                              "enum": [
+                                "Permit"
+                              ]
+                            },
+                            "message": {
+                              "type": "object",
+                              "properties": {
+                                "owner": {
+                                  "type": "string"
+                                },
+                                "spender": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string"
+                                },
+                                "nonce": {
+                                  "type": "string"
+                                },
+                                "deadline": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "owner",
+                                "spender",
+                                "value",
+                                "nonce",
+                                "deadline"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "domain",
+                            "types",
+                            "primaryType",
+                            "message"
+                          ]
+                        }
+                      },
+                      "default": null,
+                      "required": [
+                        "kind",
+                        "owner",
+                        "spender",
+                        "valueAtomic",
+                        "nonce",
+                        "deadline",
+                        "typedData"
+                      ]
+                    },
+                    "relayFeePermit": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "hypercore_relay_fee"
+                          ]
+                        },
+                        "owner": {
+                          "type": "string"
+                        },
+                        "spender": {
+                          "type": "string"
+                        },
+                        "valueAtomic": {
+                          "type": "string"
+                        },
+                        "nonce": {
+                          "type": "string"
+                        },
+                        "deadline": {
+                          "type": "string"
+                        },
+                        "typedData": {
+                          "type": "object",
+                          "properties": {
+                            "domain": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "type": "string"
+                                },
+                                "chainId": {
+                                  "type": "integer"
+                                },
+                                "verifyingContract": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "version",
+                                "chainId",
+                                "verifyingContract"
+                              ]
+                            },
+                            "types": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "type"
+                                  ]
+                                }
+                              }
+                            },
+                            "primaryType": {
+                              "type": "string",
+                              "enum": [
+                                "Permit"
+                              ]
+                            },
+                            "message": {
+                              "type": "object",
+                              "properties": {
+                                "owner": {
+                                  "type": "string"
+                                },
+                                "spender": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string"
+                                },
+                                "nonce": {
+                                  "type": "string"
+                                },
+                                "deadline": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "owner",
+                                "spender",
+                                "value",
+                                "nonce",
+                                "deadline"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "domain",
+                            "types",
+                            "primaryType",
+                            "message"
+                          ]
+                        }
+                      },
+                      "default": null,
+                      "required": [
+                        "kind",
+                        "owner",
+                        "spender",
+                        "valueAtomic",
+                        "nonce",
+                        "deadline",
+                        "typedData"
+                      ]
+                    },
+                    "spotTransfer": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "hypercore_spot_transfer"
+                          ]
+                        },
+                        "account": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "string"
+                        },
+                        "nonce": {
+                          "type": "integer"
+                        },
+                        "signatureChainId": {
+                          "type": "string"
+                        },
+                        "typedData": {
+                          "type": "object",
+                          "properties": {
+                            "domain": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "type": "string"
+                                },
+                                "chainId": {
+                                  "type": "integer"
+                                },
+                                "verifyingContract": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "version",
+                                "chainId",
+                                "verifyingContract"
+                              ]
+                            },
+                            "types": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "type"
+                                  ]
+                                }
+                              }
+                            },
+                            "primaryType": {
+                              "type": "string",
+                              "enum": [
+                                "HyperliquidTransaction:UsdClassTransfer"
+                              ]
+                            },
+                            "message": {
+                              "type": "object",
+                              "properties": {
+                                "hyperliquidChain": {
+                                  "type": "string",
+                                  "enum": [
+                                    "Mainnet"
+                                  ]
+                                },
+                                "amount": {
+                                  "type": "string"
+                                },
+                                "toPerp": {
+                                  "type": "boolean"
+                                },
+                                "nonce": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "hyperliquidChain",
+                                "amount",
+                                "toPerp",
+                                "nonce"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "domain",
+                            "types",
+                            "primaryType",
+                            "message"
+                          ]
+                        }
+                      },
+                      "default": null,
+                      "required": [
+                        "kind",
+                        "account",
+                        "amount",
+                        "nonce",
+                        "signatureChainId",
+                        "typedData"
+                      ]
+                    },
+                    "requoted": {
+                      "type": "boolean"
+                    },
+                    "requote": {
+                      "type": "object",
+                      "properties": {
+                        "basis": {
+                          "type": "string",
+                          "enum": [
+                            "netOutAtomic",
+                            "amountOutAtomic",
+                            "amountInAtomic"
+                          ]
+                        },
+                        "originalAmount": {
+                          "type": "string"
+                        },
+                        "freshAmount": {
+                          "type": "string"
+                        },
+                        "driftBps": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "basis",
+                        "originalAmount",
+                        "freshAmount",
+                        "driftBps"
+                      ]
+                    },
+                    "boardDrift": {
+                      "type": "object",
+                      "properties": {
+                        "corridorKey": {
+                          "type": "string"
+                        },
+                        "boardAmountOutAtomic": {
+                          "type": "string"
+                        },
+                        "firmAmountOutAtomic": {
+                          "type": "string"
+                        },
+                        "driftBps": {
+                          "type": "integer"
+                        },
+                        "boardAgeMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "corridorKey",
+                        "boardAmountOutAtomic",
+                        "firmAmountOutAtomic",
+                        "driftBps",
+                        "boardAgeMs"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "transferId",
+                    "venue",
+                    "steps",
+                    "expiresAt",
+                    "amountInAtomic",
+                    "expectedOutAtomic",
+                    "minOutAtomic",
+                    "feeCapture",
+                    "referralCapture",
+                    "feeBasis",
+                    "requoted"
+                  ]
+                },
+                "example": {
+                  "transferId": "6f1d2c0a-4b7e-4c55-9a1e-2f0e8c3b7d41",
+                  "venue": "relay",
+                  "steps": [
+                    {
+                      "vm": "sign",
+                      "step": "main",
+                      "scheme": "eip712",
+                      "payload": {
+                        "owner": "0x58E602386DB134b1F9B1d6d390C11A2B7b486677",
+                        "domain": {
+                          "name": "USD Coin",
+                          "version": "2",
+                          "chainId": 8453,
+                          "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+                        },
+                        "types": {
+                          "ReceiveWithAuthorization": [
+                            {
+                              "name": "from",
+                              "type": "address"
+                            },
+                            {
+                              "name": "to",
+                              "type": "address"
+                            },
+                            {
+                              "name": "value",
+                              "type": "uint256"
+                            },
+                            {
+                              "name": "validAfter",
+                              "type": "uint256"
+                            },
+                            {
+                              "name": "validBefore",
+                              "type": "uint256"
+                            },
+                            {
+                              "name": "nonce",
+                              "type": "bytes32"
+                            }
+                          ]
+                        },
+                        "primaryType": "ReceiveWithAuthorization",
+                        "message": {
+                          "from": "0x58E602386DB134b1F9B1d6d390C11A2B7b486677",
+                          "to": "0xccc88a9d1b4ed6b0eaba998850414b24f1c315be",
+                          "value": "10000000",
+                          "validAfter": 0,
+                          "validBefore": 1791484288,
+                          "nonce": "0x8ee9dabf3ef81e81899d9c395fa7d681a7435a88d0deb19916b7b9db027a8f53"
+                        },
+                        "venueSubmit": {
+                          "endpoint": "/execute/permits",
+                          "body": {
+                            "kind": "eip3009",
+                            "requestId": "0x17914836885153788c87ec28425d97ef85bd8916e6bb58e8a52d45c0fd169cd6",
+                            "api": "swap"
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "expiresAt": 1791483388000,
+                  "amountInAtomic": "10000000",
+                  "expectedOutAtomic": "9968392",
+                  "minOutAtomic": "9769024",
+                  "requoted": false,
+                  "feeCapture": "venue-param",
+                  "referralCapture": null,
+                  "feeBasis": "carved"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request, an unknown asset, or a signed transaction that is not what we built",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "An `X-BRDG-Api-Key` header was sent and the key is unknown (`invalid_api_key`) or disabled (`api_key_disabled`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such decision or transfer, or the aggregator is switched off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The decision is indicative, the quote expired or drifted, the venue is ineligible, or execution is switched off",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited; retry after `retryAfterMs`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The venue refused to build, or the broadcast was rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fastfill/transfers/{id}/submit": {
+      "post": {
+        "security": [
+          {},
+          {
+            "partnerApiKey": []
+          }
+        ],
+        "summary": "Submit fast fill signature",
+        "description": "Checks that the signature recovers to `owner` over exactly the built message, then hands it to the venue's relayer, which sends the source transaction and pays its gas. `txHash` is that transaction once the venue names it, usually within seconds. `txHash: null` with `status: \"PENDING\"` means the relayer holds the signature and has not broadcast yet; BRDG keeps tracking it, and submitting again is safe. Send the one time Permit2 `approve` through `POST /bridge/transfers/{id}/submit` with `step: \"approve\"` first.",
+        "tags": [
+          "fastfill"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "signature": {
+                    "type": "string",
+                    "pattern": "^0x[0-9a-fA-F]{130,20000}$",
+                    "description": "The wallet's 65 byte EIP-712 signature over the build's message, as 0x hex."
+                  },
+                  "userIp": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "ip"
+                      },
+                      {
+                        "type": "string",
+                        "format": "ip"
+                      }
+                    ],
+                    "description": "The end user's IP address, if the quote carried one."
+                  }
+                },
+                "required": [
+                  "signature"
+                ]
+              },
+              "example": {
+                "signature": "0xedc90fdd27654dd49ac1087901450c9c5fdf444943f61faa8d787bee86304d821f06a5db4a67eddf5cf286014d6ec8bd33c64f9e072045a9f3c5e50cc28960fc1b"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The transfer’s new state and the relayer’s hash, when known",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "transferId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "txHash": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "step": {
+                      "type": "string",
+                      "enum": [
+                        "approve",
+                        "fee",
+                        "main",
+                        "redeem"
+                      ]
+                    },
+                    "accepted": {
+                      "type": "boolean"
+                    },
+                    "verification": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "verified",
+                        "pending",
+                        "unverified_no_rpc",
+                        "unverified_rpc_error",
+                        "refuted",
+                        null
+                      ]
+                    }
+                  },
+                  "required": [
+                    "transferId",
+                    "status",
+                    "txHash",
+                    "step",
+                    "accepted",
+                    "verification"
+                  ]
+                },
+                "example": {
+                  "transferId": "6f1d2c0a-4b7e-4c55-9a1e-2f0e8c3b7d41",
+                  "status": "SUBMITTED",
+                  "txHash": "0x8f3c2b1a9d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a",
+                  "step": "main",
+                  "accepted": true,
+                  "verification": "pending"
                 }
               }
             }
