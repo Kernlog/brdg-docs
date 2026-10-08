@@ -1,9 +1,11 @@
 ---
 title: Fast fill
-description: A gasless transfer the user signs once. The venue fills the destination right away and pays the source gas.
+description: A gasless transfer the user signs once. The venue fills the destination right away, and a relayer pays the source gas.
 ---
 
-A fast fill needs no gas on either chain. The user signs one EIP-712 message; the venue's relayer sends the source transaction and pays its gas, and the venue's solver pays the user on the destination from its own liquidity, usually within two seconds. The gas the relayer spends is charged in the token you send and is already taken off every quoted amount.
+A fast fill needs no gas on either chain. The user signs one EIP-712 message. A relayer sends the source transaction and pays its gas, and the venue's solver pays the user on the destination from its own liquidity, usually within two seconds. The gas the relayer spends is charged in the token you send and is already taken off every quoted amount.
+
+Relay's own relayer submits Relay fast fills. Across fast fills are sponsored by BRDG: BRDG's relayer submits the deposit to Across's `SpokePoolPeriphery` and pays the gas. The user's signed USDC covers that gas plus the platform fee in the same transaction. The quote shows this as one `Fast fill fee` line, and BRDG refuses any amount where that fee would exceed 5%.
 
 A fast fill is never private. Fast fill and `privacy: true` cannot be combined.
 
@@ -11,11 +13,11 @@ A fast fill is never private. Fast fill and `privacy: true` cannot be combined.
 
 | | Support |
 | --- | --- |
-| Venues | Relay |
-| Source chains | EVM chains Relay serves: Ethereum, Base, Arbitrum, Optimism, Polygon and others |
-| Source tokens | USDC: one signature, no gas, every time. Other ERC-20 tokens (WETH, USDT, cbBTC and more): the first time, one `approve` to Permit2, which the wallet sends and pays gas for once; after that, one signature |
+| Venues | Relay and Across (sponsored by BRDG), ranked against each other by what the user receives |
+| Source chains | EVM chains Relay serves: Ethereum, Base, Arbitrum, Optimism, Polygon and others. Across: Ethereum, Base, Arbitrum, Optimism and Polygon |
+| Source tokens | USDC: one signature, no gas, every time. Other ERC-20 tokens (WETH, USDT, cbBTC and more): the first time, one `approve` to Permit2, which the wallet sends and pays gas for once; after that, one signature. Across takes native USDC only |
 | Not supported as a source | The native token of a chain (ETH, POL), and every non-EVM chain |
-| Destinations | Any chain and token Relay delivers to, Solana included. Not `hypercore` |
+| Destinations | Any chain and token Relay delivers to, Solana included. Across: the EVM chains and tokens it bridges USDC to. Not `hypercore` |
 | Wallets | Standard wallets (EOAs). Smart contract wallets are refused with `smart_wallet_unsupported` |
 
 ## How it works
