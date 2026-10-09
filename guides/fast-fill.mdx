@@ -1,24 +1,37 @@
 ---
 title: Fast fill
-description: A gasless transfer the user signs once. The venue fills the destination right away, and a relayer pays the source gas.
+description: A transfer that lands in seconds. BRDG asks every venue with a fast lane, checks what the wallet can pay for, and builds the one that delivers the most.
 ---
 
-A fast fill needs no gas on either chain. The user signs one EIP-712 message. A relayer sends the source transaction and pays its gas, and the venue's solver pays the user on the destination from its own liquidity, usually within two seconds. The gas the relayer spends is charged in the token you send and is already taken off every quoted amount.
+A fast fill lands in seconds. The venue's solver pays the user on the destination from its own liquidity right away, instead of waiting for the source chain to finalise. BRDG aggregates every venue with a fast lane and ranks them by what the user receives, like the ordinary quote.
 
-Relay's own relayer submits Relay fast fills. Across fast fills are sponsored by BRDG: BRDG's relayer submits the deposit to Across's `SpokePoolPeriphery` and pays the gas. The user's signed USDC covers that gas plus the platform fee in the same transaction. The quote shows this as one `Fast fill fee` line, and BRDG refuses any amount where that fee would exceed 5%.
+There are two kinds of fast lane:
+
+- **Gasless.** The user signs one EIP-712 message and a relayer sends the source transaction and pays its gas. The gas is charged in the token you send and is already taken off every quoted amount. Relay's relayer submits Relay fast fills. Across fast fills are sponsored by BRDG: BRDG's relayer submits the deposit to Across's `SpokePoolPeriphery`, and the user's signed USDC covers that gas plus the platform fee in the same transaction. The quote shows this as one `Fast fill fee` line, and BRDG refuses any amount where that fee would exceed 5%.
+- **Sent by the user.** Mayan Swift is a solver fill too, usually about 3 seconds, but the user sends the source transaction and pays its gas. BRDG offers it only when the wallet can: see [the gas check](#the-gas-check).
 
 A fast fill is never private. Fast fill and `privacy: true` cannot be combined.
+
+## How BRDG aggregates fast fills
+
+1. `POST /fastfill/quote` asks only the venues with a fast lane: Relay, Across and Mayan. Every other venue is left out silently.
+2. Each venue quotes its fast form only: Relay its gasless permit order, Across the sponsored deposit, Mayan its Swift route (never its slower CCTP or Wormhole routes). A venue that has no fast form for the pair answers `no_route`.
+3. BRDG reads the `sender`'s native balance on the source chain once, and refuses a Mayan row the wallet cannot pay gas for.
+4. The answers are ranked by what the user receives, exactly as in `POST /bridge/quote`. `best` is the winner, and `rejected` lists every venue that did not quote, with its reason.
+
+### The gas check
+
+A row the user sends needs gas on the source chain. BRDG compares `sender`'s native balance with the venue's own gas estimate for that route (on Solana, the rent the swap accounts need). If the balance is short, the row is refused with `insufficient_gas` and appears in `rejected`. If the venue gives no estimate, any balance at all passes. If the balance cannot be read, nothing is refused and the wallet itself refuses a send it cannot afford. Gasless rows are never checked.
 
 ## Supported
 
 | | Support |
 | --- | --- |
-| Venues | Relay and Across (sponsored by BRDG), ranked against each other by what the user receives |
-| Source chains | EVM chains Relay serves: Ethereum, Base, Arbitrum, Optimism, Polygon and others. Across: Ethereum, Base, Arbitrum, Optimism and Polygon |
-| Source tokens | USDC: one signature, no gas, every time. Other ERC-20 tokens (WETH, USDT, cbBTC and more): the first time, one `approve` to Permit2, which the wallet sends and pays gas for once; after that, one signature. Across takes native USDC only |
-| Not supported as a source | The native token of a chain (ETH, POL), and every non-EVM chain |
-| Destinations | Any chain and token Relay delivers to, Solana included. Across: the EVM chains and tokens it bridges USDC to. Not `hypercore` |
-| Wallets | Standard wallets (EOAs). Smart contract wallets are refused with `smart_wallet_unsupported` |
+| Venues | Relay (gasless), Across (gasless, sponsored by BRDG) and Mayan Swift (sent by the user), ranked against each other by what the user receives |
+| Source chains | Relay: the EVM chains it serves (Ethereum, Base, Arbitrum, Optimism, Polygon and others). Across: Ethereum, Base, Arbitrum, Optimism and Polygon. Mayan: EVM chains and Solana |
+| Source tokens | Relay: USDC with one signature; other ERC-20 tokens (WETH, USDT, cbBTC and more) after a one-time `approve` to Permit2, which the wallet sends and pays gas for once. Across: native USDC only. Mayan: tokens and native SOL that Swift accepts |
+| Destinations | Any chain and token the winning venue delivers to, Solana included. Not `hypercore` |
+| Wallets | Standard wallets (EOAs). Smart contract wallets are refused with `smart_wallet_unsupported` on the gasless lane |
 
 ## How it works
 
@@ -27,10 +40,10 @@ A fast fill is never private. Fast fill and `privacy: true` cannot be combined.
     `POST /fastfill/quote` asks only the venues with a fast fill lane and ranks them by what the user receives.
   </Step>
   <Step title="Build">
-    `POST /fastfill/build` returns `steps`. The last step is `{ vm: "sign", scheme: "eip712", payload }`. Sign `payload.domain`, `payload.types`, `payload.primaryType` and `payload.message` with the wallet in `payload.owner`, using `eth_signTypedData_v4`. Do not sign `payload.venueSubmit`; it is the venue's own handle. If an `approve` step comes first, send it as an ordinary transaction and wait for it to be mined.
+    `POST /fastfill/build` returns `steps` for the winner. On the gasless lane the last step is `{ vm: "sign", scheme: "eip712", payload }`: sign `payload.domain`, `payload.types`, `payload.primaryType` and `payload.message` with the wallet in `payload.owner`, using `eth_signTypedData_v4`. Do not sign `payload.venueSubmit`; it is the venue's own handle. Any other step (an `approve`, or a Mayan order as `vm: "evm"` or `vm: "svm"`) is an ordinary transaction: send it and wait for it to be mined. A Solana step arrives already signed by Mayan's own keys, so add the wallet's signature without changing the blockhash or adding instructions.
   </Step>
   <Step title="Submit">
-    `POST /fastfill/transfers/{id}/submit` with `{ signature }`. BRDG checks that the signature belongs to `owner` and covers exactly the built message, then hands it to the venue. Submit an `approve` step through [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) with `step: "approve"`.
+    A signature goes to `POST /fastfill/transfers/{id}/submit` with `{ signature }`. BRDG checks that it belongs to `owner` and covers exactly the built message, then hands it to the venue. A transaction goes to [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) with the step's own `step` (`approve` or `main`).
   </Step>
   <Step title="Track">
     [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer), like any transfer. If the submit answered `txHash: null`, the relayer holds the signature and has not broadcast yet; BRDG keeps tracking it and fills in `sourceTxHash` when the venue reports it.
@@ -39,7 +52,7 @@ A fast fill is never private. Fast fill and `privacy: true` cannot be combined.
 
 ## Script
 
-This script sends 10 USDC from Base to Arbitrum without spending any ETH. It uses the [TypeScript project](/guides/typescript-setup); save it as `src/fast-fill.ts` and run `npx tsx src/fast-fill.ts`.
+This script sends 10 USDC from Base to Arbitrum on whichever fast lane wins. On the gasless lane it spends no ETH; if Mayan wins, the wallet sends one transaction. It uses the [TypeScript project](/guides/typescript-setup); save it as `src/fast-fill.ts` and run `npx tsx src/fast-fill.ts`.
 
 ```typescript src/fast-fill.ts
 import type { Hex } from 'viem';
@@ -59,7 +72,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function main() {
-  // 1. Quote. Only fast fill venues compete.
+  // 1. Quote. Only fast fill venues compete; Mayan only if the wallet holds gas.
   const quote = await post<any>('/fastfill/quote', {
     fromChain: 'base',
     toChain: 'arbitrum',
@@ -74,21 +87,23 @@ async function main() {
   // 2. Build
   const build = await post<any>('/fastfill/build', { decisionId: quote.decisionId });
 
-  // 3. A token other than USDC may need its one time approve to Permit2
+  // 3. Transactions first: a one time approve to Permit2, or the Mayan order itself
   for (const step of build.steps) {
     if (step.vm !== 'evm') continue;
     const hash = await signEvmStep(step);
-    await brdg.submitTransfer(build.transferId, { txHash: hash, step: 'approve' });
+    await brdg.submitTransfer(build.transferId, { txHash: hash, step: step.step });
   }
 
-  // 4. Sign the message. No transaction, no gas.
+  // 4. On the gasless lane, sign the message. No transaction, no gas.
   const sign = build.steps.find((step: any) => step.vm === 'sign');
-  const { domain, types, primaryType, message } = sign.payload;
-  const signature: Hex = await account.signTypedData({ domain, types, primaryType, message });
+  if (sign) {
+    const { domain, types, primaryType, message } = sign.payload;
+    const signature: Hex = await account.signTypedData({ domain, types, primaryType, message });
 
-  // 5. Submit the signature
-  const submitted = await post<any>(`/fastfill/transfers/${build.transferId}/submit`, { signature });
-  console.log(submitted.status, submitted.txHash);
+    // 5. Submit the signature
+    const submitted = await post<any>(`/fastfill/transfers/${build.transferId}/submit`, { signature });
+    console.log(submitted.status, submitted.txHash);
+  }
 
   // 6. Wait for delivery
   const transfer = await brdg.waitForTransfer(build.transferId, {
@@ -113,6 +128,7 @@ main().catch((e) => { console.error(e); process.exit(1); });
 | `submit_in_progress` | 409 | Another submit for this transfer is running. Retry after `retryAfterMs`. |
 | `fast_fill_refused` | 409 | The venue refused the signature and nothing was sent. Quote and build again. |
 | `fast_fill_unknown_result` | 502 | The venue did not answer and may hold the signature. Submit the same signature again; it is never sent twice. |
+| `insufficient_gas` | in `rejected` | A venue the user sends (Mayan) was skipped because `sender` cannot pay the source gas. Fund the wallet, or take a gasless row. |
 | `fast_fill_submit` | 409 | A transfer submit was sent for a fast fill's message. Use `POST /fastfill/transfers/{id}/submit`. |
 | `build_expired` | 409 | The message expired before it was signed. Quote and build again. |
 

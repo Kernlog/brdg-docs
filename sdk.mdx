@@ -47,6 +47,10 @@ const transfer = await brdg.waitForTransfer(build.transferId, {
 });
 ```
 
+## Fast fill
+
+`getFastFillQuote`, `buildFastFill` and `submitFastFillSignature` cover the [fast fill](/guides/fast-fill) lane, from version 0.5.0. Send a `vm: "sign"` step's signature with `submitFastFillSignature`, and every transaction step with `submitTransfer`.
+
 ## Configuration
 
 All options are optional.
@@ -91,6 +95,9 @@ try {
 | `getQuote(request)` | [`POST /bridge/quote`](/api-reference/quote/quote) |
 | `buildTransfer({ decisionId, quoteId? })` | [`POST /bridge/build`](/api-reference/quote/build) |
 | `submitTransfer(transferId, { txHash \| signedTransaction, step })` | [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) |
+| `getFastFillQuote(request)` | [`POST /fastfill/quote`](/api-reference/fastfill/quote) |
+| `buildFastFill({ decisionId })` | [`POST /fastfill/build`](/api-reference/fastfill/build) |
+| `submitFastFillSignature(transferId, { signature })` | [`POST /fastfill/transfers/{id}/submit`](/api-reference/fastfill/submit) |
 | `getTransfer(transferId)` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |
 | `waitForTransfer(transferId, options?)` | Polls `GET /bridge/transfers/{id}` until the transfer finishes |
 
