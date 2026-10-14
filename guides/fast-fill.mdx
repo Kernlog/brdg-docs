@@ -15,8 +15,8 @@ A fast fill is never private. Fast fill and `privacy: true` cannot be combined.
 ## How BRDG aggregates fast fills
 
 1. `POST /fastfill/quote` asks only the venues with a fast lane: Relay, Across and Mayan. Every other venue is left out silently.
-2. Each venue quotes its fast form only: Relay its gasless permit order, Across the sponsored deposit, Mayan its Swift route (never its slower CCTP or Wormhole routes). A venue that has no fast form for the pair answers `no_route`.
-3. BRDG reads the `sender`'s native balance on the source chain once, and refuses a Mayan row the wallet cannot pay gas for.
+2. Each venue quotes its fast form only: Relay its gasless permit order where the token has one, otherwise its ordinary solver fill sent by the user (native tokens, and every Solana source); Across the sponsored deposit; Mayan its Swift route (never its slower CCTP or Wormhole routes). A venue that has no fast form for the pair answers `no_route`.
+3. BRDG reads the `sender`'s native balance on the source chain once, and refuses any row the user sends (Mayan, or Relay without a permit) that the wallet cannot pay gas for.
 4. The answers are ranked by what the user receives, exactly as in `POST /bridge/quote`. `best` is the winner, and `rejected` lists every venue that did not quote, with its reason.
 
 ### The gas check
@@ -27,9 +27,9 @@ A row the user sends needs gas on the source chain. BRDG compares `sender`'s nat
 
 | | Support |
 | --- | --- |
-| Venues | Relay (gasless), Across (gasless, sponsored by BRDG) and Mayan Swift (sent by the user), ranked against each other by what the user receives |
-| Source chains | Relay: the EVM chains it serves (Ethereum, Base, Arbitrum, Optimism, Polygon and others). Across: Ethereum, Base, Arbitrum, Optimism and Polygon. Mayan: EVM chains and Solana |
-| Source tokens | Relay: USDC with one signature; other ERC-20 tokens (WETH, USDT, cbBTC and more) after a one-time `approve` to Permit2, which the wallet sends and pays gas for once. Across: native USDC only. Mayan: tokens and native SOL that Swift accepts |
+| Venues | Relay (gasless where the token has a permit, else sent by the user), Across (gasless, sponsored by BRDG) and Mayan Swift (sent by the user), ranked against each other by what the user receives |
+| Source chains | Relay: the EVM chains it serves (Ethereum, Base, Arbitrum, Optimism, Polygon and others) and Solana. Across: Ethereum, Base, Arbitrum, Optimism and Polygon. Mayan: EVM chains and Solana |
+| Source tokens | Relay: USDC with one signature; other ERC-20 tokens (WETH, USDT, cbBTC and more) after a one-time `approve` to Permit2, which the wallet sends and pays gas for once; native tokens and Solana tokens as one ordinary transaction. Across: native USDC only. Mayan: tokens and native SOL that Swift accepts |
 | Destinations | Any chain and token the winning venue delivers to, Solana included. Not `hypercore` |
 | Wallets | Standard wallets (EOAs). Smart contract wallets are refused with `smart_wallet_unsupported` on the gasless lane |
 
@@ -40,7 +40,7 @@ A row the user sends needs gas on the source chain. BRDG compares `sender`'s nat
     `POST /fastfill/quote` asks only the venues with a fast fill lane and ranks them by what the user receives.
   </Step>
   <Step title="Build">
-    `POST /fastfill/build` returns `steps` for the winner. On the gasless lane the last step is `{ vm: "sign", scheme: "eip712", payload }`: sign `payload.domain`, `payload.types`, `payload.primaryType` and `payload.message` with the wallet in `payload.owner`, using `eth_signTypedData_v4`. Do not sign `payload.venueSubmit`; it is the venue's own handle. Any other step (an `approve`, or a Mayan order as `vm: "evm"` or `vm: "svm"`) is an ordinary transaction: send it and wait for it to be mined. A Solana step arrives already signed by Mayan's own keys, so add the wallet's signature without changing the blockhash or adding instructions.
+    `POST /fastfill/build` returns `steps` for the winner. On the gasless lane the last step is `{ vm: "sign", scheme: "eip712", payload }`: sign `payload.domain`, `payload.types`, `payload.primaryType` and `payload.message` with the wallet in `payload.owner`, using `eth_signTypedData_v4`. Do not sign `payload.venueSubmit`; it is the venue's own handle. Any other step (an `approve`, a Relay order without a permit, or a Mayan order, as `vm: "evm"` or `vm: "svm"`) is an ordinary transaction: send it and wait for it to be mined. A Solana step arrives already signed by Mayan's own keys, so add the wallet's signature without changing the blockhash or adding instructions.
   </Step>
   <Step title="Submit">
     A signature goes to `POST /fastfill/transfers/{id}/submit` with `{ signature }`. BRDG checks that it belongs to `owner` and covers exactly the built message, then hands it to the venue. A transaction goes to [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) with the step's own `step` (`approve` or `main`).
