@@ -24,6 +24,8 @@ The platform fee on a single transfer is capped at \$10, whatever the rate. BRDG
 
 A referral fee has its own, separate \$10 cap. See [Referrals](/concepts/referrals).
 
+An integrator share (`referralWallet` + `referralBps`) and a user's `referralCode` are both accepted on `POST /fastfill/quote` as well, on the same terms. The one exception: a fast fill the venue relays is gasless, so nothing the user signs can carry an integrator payout, and those rows are quoted at `referralBps: 0` with `fees.referral: null`. The `referralCode` discount is unaffected.
+
 ## Referral discount
 
 A user referred through a BRDG [referral link](/guides/referrals), or quoted with a `referralCode`, pays 10% less platform fee. The rate is rounded down to whole bps in the user's favour: 5 becomes 4, 10 becomes 9, and 15 becomes 13. No platform fee stays no platform fee. Only the platform fee is discounted; venue fees, gas and any integrator share are not.

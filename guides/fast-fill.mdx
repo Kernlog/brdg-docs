@@ -142,6 +142,17 @@ main().catch((e) => { console.error(e); process.exit(1); });
 | `fast_fill_submit` | 409 | A transfer submit was sent for a fast fill's message. Use `POST /fastfill/transfers/{id}/submit`. |
 | `build_expired` | 409 | The message expired before it was signed. Quote and build again. |
 
+## Fees and referrals
+
+The [platform fee](/concepts/fees) works exactly as it does on `POST /bridge/quote` and is already inside every output amount. Both referral fields are accepted here too:
+
+| Field | On a fast fill |
+| --- | --- |
+| `referralCode` | Your user's BRDG code. 10% off the platform fee and points for the code's owner, exactly as on the ordinary quote. |
+| `referralWallet` + `referralBps` | Your own [integrator share](/concepts/referrals), both or neither, `0` to `15`. Paid on rows the user sends; `0` on rows the venue relays. |
+
+A fast fill the venue relays is gasless: the user signs a message and the venue's relayer sends the source transaction, so there is nothing of the user's for an integrator payout to ride in. Those rows come back with `referralFeeAmountAtomic: "0"` and `fees.referral: null`, rather than quoting a share that would never be paid. A fast fill the user sends (Mayan Swift, and Relay on native and Solana sources) pays your share in that transaction like any other transfer.
+
 ## Endpoints used
 
 | Step | Endpoint |

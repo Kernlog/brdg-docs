@@ -9,7 +9,7 @@ This page covers your own fee as an integrator. BRDG's referral codes, which giv
 
 ## Fields
 
-Add both fields to `POST /bridge/quote`, or neither:
+Add both fields to `POST /bridge/quote` or `POST /fastfill/quote`, or neither:
 
 | Field | Value |
 | --- | --- |
@@ -58,6 +58,12 @@ The quote shows your share next to the platform fee, in the same token, before a
 ## How you are paid
 
 Your share is paid to your wallet in the same transaction the user signs for the bridge. On Solana it is an extra instruction in that transaction, and on EVM and Tron it is part of the `fee` step next to the bridge step. Nothing is held back and paid out later.
+
+## Fast fill
+
+Both fields work on `POST /fastfill/quote` on exactly the same terms, with the same ceiling and the same both-or-neither rule.
+
+One lane cannot pay you, and says so rather than promising it. On a fast fill the venue relays, the user signs a message and the venue's relayer sends the source transaction, so there is no transaction of the user's for your payout to ride in. Those rows are quoted at `referralBps: 0` with `fees.referral: null`, so the number you show your user is the number they pay. A fast fill the user sends themselves is an ordinary transaction and pays you normally; `quotes[].referralFeeAmountAtomic` tells you per row which is which.
 
 The one exception is a source chain where BRDG cannot collect fees at all. On those chains neither the platform fee nor your share is charged.
 

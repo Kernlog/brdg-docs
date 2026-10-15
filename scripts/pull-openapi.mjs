@@ -177,6 +177,9 @@ const FIELDS = {
     amountAtomic: 'Amount in the token\'s smallest unit, as a string.',
     sender: 'Wallet the funds leave from. It signs the fast fill message.',
     recipient: 'Wallet that receives the funds. Defaults to `sender` when both chains use the same address format.',
+    referralWallet:
+      'Wallet that receives your referral share. Must be valid on the source chain. Send together with `referralBps`. A fast fill the venue relays is gasless, so no transaction of the user’s can carry the payout: the share is 0 on those rows and `fees.referral` is `null`. A fast fill the user sends pays it normally.',
+    referralBps: 'Your referral rate in basis points, from 0 to 15.',
     referralCode: 'A BRDG referral code your user arrived with, as on `POST /bridge/quote`.',
     privacy: 'Must be `false` or omitted. A fast fill is never private.',
     userIp: 'The end user\'s IP address, when you call the API from a server on their behalf.',

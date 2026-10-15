@@ -1088,7 +1088,7 @@
                         "decimals": 6,
                         "amountAtomic": "9",
                         "deductedFrom": "output",
-                        "amountUsd": 0.000009664307999998,
+                        "amountUsd": 9.664307999998e-06,
                         "label": "Swap impact"
                       },
                       {
@@ -1133,7 +1133,7 @@
                           "decimals": 6,
                           "amountAtomic": "9",
                           "deductedFrom": "output",
-                          "amountUsd": 0.000009664307999998,
+                          "amountUsd": 9.664307999998e-06,
                           "label": "Swap impact"
                         },
                         {
@@ -2993,7 +2993,7 @@
         },
         "responses": {
           "200": {
-            "description": "The transfer’s new state and the hash on record",
+            "description": "The transfer\u2019s new state and the hash on record",
             "content": {
               "application/json": {
                 "schema": {
@@ -3531,6 +3531,18 @@
                       }
                     ],
                     "description": "The end user's IP address, when you call the API from a server on their behalf."
+                  },
+                  "referralWallet": {
+                    "type": "string",
+                    "minLength": 26,
+                    "maxLength": 600,
+                    "description": "Wallet that receives your referral share. Must be valid on the source chain. Send together with `referralBps`. A fast fill the venue relays is gasless, so no transaction of the user\u2019s can carry the payout: the share is 0 on those rows and `fees.referral` is `null`. A fast fill the user sends pays it normally."
+                  },
+                  "referralBps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 15,
+                    "description": "Your referral rate in basis points, from 0 to 15."
                   },
                   "referralCode": {
                     "type": "string",
@@ -5901,7 +5913,7 @@
         },
         "responses": {
           "200": {
-            "description": "The transfer’s new state and the relayer’s hash, when known",
+            "description": "The transfer\u2019s new state and the relayer\u2019s hash, when known",
             "content": {
               "application/json": {
                 "schema": {
