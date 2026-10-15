@@ -168,9 +168,11 @@ const FIELDS = {
     userIp: 'The end user\'s IP address, if the quote carried one.',
   },
   '/fastfill/quote post request': {
-    fromChain: 'Chain key the transfer starts from. Must be an EVM chain.',
-    toChain: 'Chain key the transfer ends on. Not `hypercore`.',
-    fromToken: 'Token to send: a symbol such as `USDC` or a token address. Not the native token.',
+    fromChain:
+      'Chain key the transfer starts from. Any chain a fast lane venue serves, including Solana. A `hypercore` source quotes but no venue serves it fast yet.',
+    toChain: 'Chain key the transfer ends on, including `hypercore`.',
+    fromToken:
+      'Token to send: a symbol such as `USDC`, a token address, or `null` for the native token.',
     toToken: 'Token to receive: a symbol, a token address, or `null` for the native token.',
     amountAtomic: 'Amount in the token\'s smallest unit, as a string.',
     sender: 'Wallet the funds leave from. It signs the fast fill message.',

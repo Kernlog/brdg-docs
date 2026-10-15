@@ -30,8 +30,19 @@ A row the user sends needs gas on the source chain. BRDG compares `sender`'s nat
 | Venues | Relay (gasless where the token has a permit, else sent by the user), Across (gasless, sponsored by BRDG) and Mayan Swift (sent by the user), ranked against each other by what the user receives |
 | Source chains | Relay: the EVM chains it serves (Ethereum, Base, Arbitrum, Optimism, Polygon and others) and Solana. Across: Ethereum, Base, Arbitrum, Optimism and Polygon. Mayan: EVM chains and Solana |
 | Source tokens | Relay: USDC with one signature; other ERC-20 tokens (WETH, USDT, cbBTC and more) after a one-time `approve` to Permit2, which the wallet sends and pays gas for once; native tokens and Solana tokens as one ordinary transaction. Across: native USDC only. Mayan: tokens and native SOL that Swift accepts |
-| Destinations | Any chain and token the winning venue delivers to, Solana included. Not `hypercore` |
+| Destinations | Any chain and token the winning venue delivers to, Solana and `hypercore` included. See [Hyperliquid](#hyperliquid) |
 | Wallets | Standard wallets (EOAs). Smart contract wallets are refused with `smart_wallet_unsupported` on the gasless lane |
+
+## Hyperliquid
+
+`toChain: "hypercore"` works on the fast lane, with both kinds of Hyperliquid route ranked together exactly as in [`POST /bridge/quote`](/concepts/hyperliquid):
+
+- **Direct.** The venue credits the Hyperliquid account straight from the source chain. Relay and Mayan Swift both do, and a direct Relay row needs no gas from the user where the token has a permit.
+- **Through Arbitrum.** The venue delivers USDC to Arbitrum and BRDG's relayer credits the account. The row carries `postStep: { kind: "hypercore_deposit", chain: "arbitrum", vm: "evm" }`, and your user signs nothing after the source step - whether that step was a signature or a transaction. The relayer charges its gas plus 10 cents, capped at $1, already inside the quoted output.
+
+The Hyperliquid minimum applies here as everywhere: a row that would credit less than 1 USDC, or less than 5.10 USDC into an account with no history, is listed in `rejected` with `code: "below_min"` and the amount it would have delivered.
+
+A `hypercore` **source** quotes but no venue serves it fast yet, so the table comes back empty with `emptyReason: "no_fast_fill_route"` and Relay's own reason in `rejected`. Use [`POST /bridge/quote`](/api-reference/quote/quote) to bridge out of Hyperliquid.
 
 ## How it works
 
@@ -120,7 +131,6 @@ main().catch((e) => { console.error(e); process.exit(1); });
 | Code | Status | Meaning and what to do |
 | --- | --- | --- |
 | `fast_fill_not_private` | 400 | `privacy: true` was sent. A fast fill is never private. |
-| `fast_fill_unsupported_corridor` | 400 | The destination is `hypercore`. Use `POST /bridge/quote`. |
 | `not_fast_fill` | 409 | The `decisionId` or transfer did not come from a fast fill quote. Use the ordinary build and submit. |
 | `signature_mismatch` | 400 | The signature is not `owner`'s over this build's message. Nothing was sent. Sign `payload` again with the wallet in `owner`. |
 | `smart_wallet_unsupported` | 400 | The signature came from a smart contract wallet. Use a standard wallet, or the ordinary route. |
