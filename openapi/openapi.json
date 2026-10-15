@@ -295,6 +295,10 @@
                       }
                     ],
                     "description": "The end user's IP address, when you call the API from a server on their behalf."
+                  },
+                  "referralCode": {
+                    "type": "string",
+                    "description": "A BRDG referral code your user arrived with. Gives the user 10% off the platform fee and credits the code's owner. A malformed, unknown or self-owned code is ignored and the full fee applies."
                   }
                 },
                 "required": [
@@ -776,13 +780,42 @@
                             "tierSavedBps": {
                               "type": "integer",
                               "nullable": true
+                            },
+                            "discount": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "code": {
+                                  "type": "string"
+                                },
+                                "pct": {
+                                  "type": "number",
+                                  "enum": [
+                                    10
+                                  ]
+                                },
+                                "fullBps": {
+                                  "type": "integer"
+                                },
+                                "fullAmountAtomic": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "pct",
+                                "fullBps",
+                                "fullAmountAtomic"
+                              ],
+                              "description": "Set when a referral code took 10% off the platform fee, otherwise `null`. `bps` and `amountAtomic` are what is charged; `fullBps` and `fullAmountAtomic` are what would have been charged without the code."
                             }
                           },
                           "required": [
                             "bps",
                             "amountAtomic",
                             "asset",
-                            "tierSavedBps"
+                            "tierSavedBps",
+                            "discount"
                           ]
                         },
                         "referral": {
@@ -1713,7 +1746,8 @@
                       "bps": 5,
                       "amountAtomic": "50000",
                       "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-                      "tierSavedBps": 55
+                      "tierSavedBps": 55,
+                      "discount": null
                     },
                     "referral": null
                   },
@@ -3497,6 +3531,10 @@
                       }
                     ],
                     "description": "The end user's IP address, when you call the API from a server on their behalf."
+                  },
+                  "referralCode": {
+                    "type": "string",
+                    "description": "A BRDG referral code your user arrived with, as on `POST /bridge/quote`."
                   }
                 },
                 "required": [
@@ -3977,13 +4015,42 @@
                             "tierSavedBps": {
                               "type": "integer",
                               "nullable": true
+                            },
+                            "discount": {
+                              "type": "object",
+                              "nullable": true,
+                              "properties": {
+                                "code": {
+                                  "type": "string"
+                                },
+                                "pct": {
+                                  "type": "number",
+                                  "enum": [
+                                    10
+                                  ]
+                                },
+                                "fullBps": {
+                                  "type": "integer"
+                                },
+                                "fullAmountAtomic": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "pct",
+                                "fullBps",
+                                "fullAmountAtomic"
+                              ],
+                              "description": "Set when a referral code took 10% off the platform fee, otherwise `null`. `bps` and `amountAtomic` are what is charged; `fullBps` and `fullAmountAtomic` are what would have been charged without the code."
                             }
                           },
                           "required": [
                             "bps",
                             "amountAtomic",
                             "asset",
-                            "tierSavedBps"
+                            "tierSavedBps",
+                            "discount"
                           ]
                         },
                         "referral": {
@@ -6347,6 +6414,10 @@
                     "refundDetectedOnChain": {
                       "type": "boolean"
                     },
+                    "refundAddress": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "claim": {
                       "type": "object",
                       "nullable": true,
@@ -6689,6 +6760,7 @@
                     "refundAmountAtomic",
                     "refundTiming",
                     "refundDetectedOnChain",
+                    "refundAddress",
                     "claim",
                     "postStep",
                     "finalDestination",
@@ -9824,6 +9896,217 @@
           },
           "502": {
             "description": "The venue refused to build, or the broadcast was rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "nullable": true
+                          }
+                        },
+                        "retryAfterMs": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/referrals/leaderboard": {
+      "get": {
+        "summary": "Get referral leaderboard",
+        "description": "Returns referral codes ranked by points, highest first; ties go to the code claimed earliest. A referrer earns 1 point for each whole US dollar of completed transfers sent through their code. `limit` is 1 to 100 and defaults to 25. The board is refreshed about every 30 seconds; `updatedAt` says when.",
+        "tags": [
+          "referrals"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query",
+            "description": "How many codes to return, from 1 to 100. Defaults to 25."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The top codes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rows": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "rank": {
+                            "type": "integer"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "points": {
+                            "type": "integer"
+                          },
+                          "wallets": {
+                            "type": "integer"
+                          },
+                          "volumeUsd": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "rank",
+                          "code",
+                          "points",
+                          "wallets",
+                          "volumeUsd"
+                        ]
+                      },
+                      "description": "Codes ranked by points. `volumeUsd` is the referred volume in US dollars, as a decimal string; `wallets` is the number of distinct wallets referred."
+                    },
+                    "updatedAt": {
+                      "type": "integer",
+                      "description": "Unix time in milliseconds when the board was computed."
+                    }
+                  },
+                  "required": [
+                    "rows",
+                    "updatedAt"
+                  ]
+                },
+                "example": {
+                  "rows": [
+                    {
+                      "rank": 1,
+                      "code": "alice",
+                      "points": 48210,
+                      "wallets": 37,
+                      "volumeUsd": "48210.55"
+                    },
+                    {
+                      "rank": 2,
+                      "code": "satoshi-fan",
+                      "points": 12034,
+                      "wallets": 9,
+                      "volumeUsd": "12034.10"
+                    }
+                  ],
+                  "updatedAt": 1760486400000
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/referrals/{code}": {
+      "get": {
+        "summary": "Resolve referral code",
+        "description": "Checks whether a referral code exists. The code is trimmed and lower-cased first. Answers `200`: `{ valid: true, code }` with the current code of its owner (a retired code resolves to the code its owner uses now), or `{ valid: false, reason }` where `reason` is `invalid` (not a well-formed code) or `not_found` (no account holds it). Limited to 60 lookups a minute per IP address; past that it answers `429 rate_limited` with `retryAfterMs`.",
+        "tags": [
+          "referrals"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "code",
+            "in": "path",
+            "description": "The referral code, as in `brdg.now/ref/<code>`."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Whether the code resolves",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "valid": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "valid",
+                        "code"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "valid": {
+                          "type": "boolean",
+                          "enum": [
+                            false
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "invalid",
+                            "not_found"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "valid",
+                        "reason"
+                      ]
+                    }
+                  ]
+                },
+                "example": {
+                  "valid": true,
+                  "code": "alice"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited; retry after `retryAfterMs`",
             "content": {
               "application/json": {
                 "schema": {

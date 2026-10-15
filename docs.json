@@ -84,6 +84,7 @@
               "guides/fast-fill",
               "guides/bridge-privately",
               "guides/earn-referral-fees",
+              "guides/referrals",
               "guides/track-a-transfer"
             ]
           },
@@ -141,6 +142,13 @@
               "api-reference/fastfill/quote",
               "api-reference/fastfill/build",
               "api-reference/fastfill/submit"
+            ]
+          },
+          {
+            "group": "Referrals",
+            "pages": [
+              "api-reference/referrals/resolve",
+              "api-reference/referrals/leaderboard"
             ]
           }
         ]

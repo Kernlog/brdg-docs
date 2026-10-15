@@ -51,6 +51,10 @@ const transfer = await brdg.waitForTransfer(build.transferId, {
 
 `getFastFillQuote`, `buildFastFill` and `submitFastFillSignature` cover the [fast fill](/guides/fast-fill) lane, from version 0.5.0. Send a `vm: "sign"` step's signature with `submitFastFillSignature`, and every transaction step with `submitTransfer`.
 
+## Referrals
+
+`resolveReferral` and `getReferralLeaderboard` cover the [referral program](/guides/referrals), and `getQuote` and `getFastFillQuote` accept `referralCode`, from version 0.6.0. The SDK trims and lower-cases `referralCode` and throws a `BrdgError` with the code `invalid_referral_code` before sending a malformed one.
+
 ## Configuration
 
 All options are optional.
@@ -98,6 +102,8 @@ try {
 | `getFastFillQuote(request)` | [`POST /fastfill/quote`](/api-reference/fastfill/quote) |
 | `buildFastFill({ decisionId })` | [`POST /fastfill/build`](/api-reference/fastfill/build) |
 | `submitFastFillSignature(transferId, { signature })` | [`POST /fastfill/transfers/{id}/submit`](/api-reference/fastfill/submit) |
+| `resolveReferral(code)` | [`GET /referrals/{code}`](/api-reference/referrals/resolve) |
+| `getReferralLeaderboard({ limit? })` | [`GET /referrals/leaderboard`](/api-reference/referrals/leaderboard) |
 | `getTransfer(transferId)` | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) |
 | `waitForTransfer(transferId, options?)` | Polls `GET /bridge/transfers/{id}` until the transfer finishes |
 

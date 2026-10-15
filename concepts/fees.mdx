@@ -24,6 +24,10 @@ The platform fee on a single transfer is capped at \$10, whatever the rate. BRDG
 
 A referral fee has its own, separate \$10 cap. See [Referrals](/concepts/referrals).
 
+## Referral discount
+
+A user referred through a BRDG [referral link](/guides/referrals), or quoted with a `referralCode`, pays 10% less platform fee. The rate is rounded down to whole bps in the user's favour: 5 becomes 4, 10 becomes 9, and 15 becomes 13. No platform fee stays no platform fee. Only the platform fee is discounted; venue fees, gas and any integrator share are not.
+
 ## What you see in a quote
 
 Every output amount in a quote already has the fee taken off, so the number you show your user is the number they receive. When you build a quote, `expectedOutAtomic` matches the `amountOutAtomic` you were shown.
@@ -32,12 +36,12 @@ The fee is disclosed in the quote before anything is signed:
 
 ```json
 "fees": {
-  "platform": { "bps": 5, "amountAtomic": "50000", "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", "tierSavedBps": 55 },
+  "platform": { "bps": 5, "amountAtomic": "50000", "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", "tierSavedBps": 55, "discount": null },
   "referral": null
 }
 ```
 
-`bps` and `amountAtomic` are measured in the token you send, and `tierSavedBps` is the saving that set the rate. A `null` entry means no fee of that kind is charged. Each quote in `quotes` also carries its own `feeBps`, `feeAmountAtomic` and `tierSavedBps`, because each one saved a different amount.
+`bps` and `amountAtomic` are measured in the token you send, and `tierSavedBps` is the saving that set the rate. When a referral code took 10% off, `platform.discount` holds the code and the undiscounted `fullBps` and `fullAmountAtomic`; otherwise it is `null`. A `null` entry means no fee of that kind is charged. Each quote in `quotes` also carries its own `feeBps`, `feeAmountAtomic` and `tierSavedBps`, because each one saved a different amount.
 
 ## How the fee is collected
 

@@ -11,7 +11,8 @@ const spec = process.env.BRIDGE_OPENAPI_FILE
   ? JSON.parse(readFileSync(process.env.BRIDGE_OPENAPI_FILE, 'utf8'))
   : await (await fetch(`${API}/v1/openapi.json`)).json();
 
-// The public surface: markets, and quote -> build -> submit -> transfer. Everything
+// The public surface: markets, quote -> build -> submit -> transfer, fast fill, and the two public
+// referral reads. Everything
 // else the API serves is for the BRDG app itself and is not documented here.
 const PUBLIC_PATHS = [
   '/bridge/source-chains',
@@ -24,6 +25,8 @@ const PUBLIC_PATHS = [
   '/fastfill/quote',
   '/fastfill/build',
   '/fastfill/transfers/{id}/submit',
+  '/referrals/leaderboard',
+  '/referrals/{code}',
 ];
 for (const path of Object.keys(spec.paths)) if (!PUBLIC_PATHS.includes(path)) delete spec.paths[path];
 
@@ -89,6 +92,15 @@ set('/fastfill/transfers/{id}/submit', 'post', 'response', {
   verification: 'pending',
 });
 
+set('/referrals/{code}', 'get', 'response', { valid: true, code: 'alice' });
+set('/referrals/leaderboard', 'get', 'response', {
+  rows: [
+    { rank: 1, code: 'alice', points: 48210, wallets: 37, volumeUsd: '48210.55' },
+    { rank: 2, code: 'satoshi-fan', points: 12034, wallets: 9, volumeUsd: '12034.10' },
+  ],
+  updatedAt: 1760486400000,
+});
+
 // Operation summaries and descriptions, written for an integrator.
 const describe = (path, method, summary, description) => {
   const op = spec.paths[path][method];
@@ -116,6 +128,11 @@ describe('/fastfill/transfers/{id}/submit', 'post', 'Submit fast fill signature'
 describe('/bridge/transfers/{id}', 'get', 'Get transfer',
   'Returns one transfer. Anyone with the transfer id can read it. Poll until `status` is `COMPLETED`, `PARTIAL`, `REFUNDED`, `FAILED` or `ABANDONED`.');
 
+describe('/referrals/{code}', 'get', 'Resolve referral code',
+  'Checks whether a referral code exists. The code is trimmed and lower-cased first. Answers `200`: `{ valid: true, code }` with the current code of its owner (a retired code resolves to the code its owner uses now), or `{ valid: false, reason }` where `reason` is `invalid` (not a well-formed code) or `not_found` (no account holds it). Limited to 60 lookups a minute per IP address; past that it answers `429 rate_limited` with `retryAfterMs`.');
+describe('/referrals/leaderboard', 'get', 'Get referral leaderboard',
+  'Returns referral codes ranked by points, highest first; ties go to the code claimed earliest. A referrer earns 1 point for each whole US dollar of completed transfers sent through their code. `limit` is 1 to 100 and defaults to 25. The board is refreshed about every 30 seconds; `updatedAt` says when.');
+
 // Field descriptions for the request bodies and the fields an integrator reads first. The API's
 // own schema carries none.
 const FIELDS = {
@@ -133,6 +150,7 @@ const FIELDS = {
     indicative: 'Set to `true` for a display-only price. An indicative quote cannot be built.',
     referralWallet: 'Wallet that receives your referral share. Must be valid on the source chain. Send together with `referralBps`.',
     referralBps: 'Your referral rate in basis points, from 0 to 15.',
+    referralCode: 'A BRDG referral code your user arrived with. Gives the user 10% off the platform fee and credits the code\'s owner. A malformed, unknown or self-owned code is ignored and the full fee applies.',
     privacy: 'Set to `true` to use only venues that do not publish the link between sender and recipient.',
     userIp: 'The end user\'s IP address, when you call the API from a server on their behalf.',
   },
@@ -157,6 +175,7 @@ const FIELDS = {
     amountAtomic: 'Amount in the token\'s smallest unit, as a string.',
     sender: 'Wallet the funds leave from. It signs the fast fill message.',
     recipient: 'Wallet that receives the funds. Defaults to `sender` when both chains use the same address format.',
+    referralCode: 'A BRDG referral code your user arrived with, as on `POST /bridge/quote`.',
     privacy: 'Must be `false` or omitted. A fast fill is never private.',
     userIp: 'The end user\'s IP address, when you call the API from a server on their behalf.',
   },
@@ -188,6 +207,10 @@ const FIELDS = {
     fees: 'Each fee on this transfer, with its status.',
     postStep: 'Set on Hyperliquid deposits through Arbitrum. Reports the Hyperliquid credit.',
   },
+  '/referrals/leaderboard get 200': {
+    rows: 'Codes ranked by points. `volumeUsd` is the referred volume in US dollars, as a decimal string; `wallets` is the number of distinct wallets referred.',
+    updatedAt: 'Unix time in milliseconds when the board was computed.',
+  },
 };
 for (const [where, fields] of Object.entries(FIELDS)) {
   const [path, method, part] = where.split(' ');
@@ -197,6 +220,20 @@ for (const [where, fields] of Object.entries(FIELDS)) {
     if (!schema.properties?.[name]) throw new Error(`${where}: no field ${name}`);
     schema.properties[name].description = text;
   }
+}
+
+// Parameter descriptions for the referral reads.
+const param = (path, name, text) => {
+  spec.paths[path].get.parameters.find((p) => p.name === name).description = text;
+};
+param('/referrals/{code}', 'code', 'The referral code, as in `brdg.now/ref/<code>`.');
+param('/referrals/leaderboard', 'limit', 'How many codes to return, from 1 to 100. Defaults to 25.');
+
+// The referral discount sits one level down, on the platform fee.
+for (const path of ['/bridge/quote', '/fastfill/quote']) {
+  const fees = spec.paths[path].post.responses['200'].content['application/json'].schema.properties.fees;
+  fees.properties.platform.properties.discount.description =
+    'Set when a referral code took 10% off the platform fee, otherwise `null`. `bps` and `amountAtomic` are what is charged; `fullBps` and `fullAmountAtomic` are what would have been charged without the code.';
 }
 
 // Response and field descriptions come from the API's own route definitions. A spaced hyphen used

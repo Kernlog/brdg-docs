@@ -31,6 +31,15 @@ flowchart TD
 | [`POST /bridge/transfers/{id}/submit`](/api-reference/quote/submit) | Accepts the signed transaction, or the hash of one the wallet already sent. |
 | [`GET /bridge/transfers/{id}`](/api-reference/quote/transfer) | Returns the transfer and its current status. |
 
+## Referrals
+
+| Endpoint | Returns |
+| --- | --- |
+| [`GET /referrals/{code}`](/api-reference/referrals/resolve) | Whether a referral code exists. |
+| [`GET /referrals/leaderboard`](/api-reference/referrals/leaderboard) | Referral codes ranked by points. |
+
+Send a user's code as `referralCode` on the quote. See [Referral program](/guides/referrals).
+
 To deposit into Hyperliquid, use `toChain: "hypercore"`. See [Hyperliquid](/concepts/hyperliquid).
 
 The OpenAPI 3.1 document is at [`https://api.brdg.now/v1/openapi.json`](https://api.brdg.now/v1/openapi.json). The [TypeScript SDK](/sdk) has a method for each of these endpoints. Errors are described on [Errors](/reference/errors).

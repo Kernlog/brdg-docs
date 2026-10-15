@@ -5,6 +5,8 @@ description: Earn a share of every transfer you send through BRDG by adding two 
 
 If you send transfers through BRDG, you can charge your own fee on top and have it paid straight to your wallet. There is nothing to register.
 
+This page covers your own fee as an integrator. BRDG's referral codes, which give a user 10% off the platform fee, are a separate field: see [Your users' referral codes](#your-users-referral-codes).
+
 ## Fields
 
 Add both fields to `POST /bridge/quote`, or neither:
@@ -69,3 +71,9 @@ Each fee appears in the `fees` list of `GET /bridge/transfers/{id}`, with a `kin
 | `expected` | The fee is inside a transaction the user signed. |
 | `settled` | The transfer completed. `txHash` is the transaction that paid you. |
 | `void` | No fee was collected: the transfer was refunded or failed, or the user never signed the `fee` step. |
+
+## Your users' referral codes
+
+If a user arrives with a BRDG [referral code](/guides/referrals), send it as `referralCode` on the quote. The user pays 10% less platform fee, and the code's owner earns points for the transfer. It does not change your share: `referralWallet` and `referralBps` work the same with or without it.
+
+The transfer is credited to the code's owner unless the user was already referred on brdg.now, in which case their own referrer keeps it, or `sender` belongs to the code's owner. A malformed or unknown code is ignored, and the quote charges the full fee.

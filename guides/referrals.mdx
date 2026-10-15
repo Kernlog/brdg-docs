@@ -1,0 +1,143 @@
+---
+title: Referral program
+description: Referred users save 10% on BRDG's platform fee. Referrers earn 1 point for every $1 bridged through their link.
+---
+
+Every BRDG account can claim a referral link. A user who signs in through it pays 10% less platform fee on every transfer from then on, and the owner of the link earns 1 point for each dollar those transfers move.
+
+## Referral links
+
+A link is `https://brdg.now/ref/<code>`, for example `https://brdg.now/ref/alice`. Anyone signed in to [brdg.now](https://brdg.now/ref) with a wallet can claim one code for their account, on the referrals page.
+
+A code is trimmed and lower-cased, then must match:
+
+```text
+^[a-z0-9](?:[a-z0-9-]{1,13}[a-z0-9])$
+```
+
+| Rule | |
+| --- | --- |
+| Length | 3 to 15 characters |
+| Characters | `a` to `z`, `0` to `9` and `-` |
+| Hyphens | Not first, not last, never two in a row |
+| Reserved | Words such as `brdg`, `admin`, `support`, `fees` and `free` cannot be claimed |
+
+An account holds one live code, and a code belongs to one account for good. Its owner can change it, at most 5 codes per account in total. A code changed away from is retired, not freed: nobody else can ever claim it, and an old link keeps referring users to the same account. Points and the users already referred stay with the account.
+
+## How a user is referred
+
+<Steps>
+  <Step title="Open the link">
+    BRDG remembers the code in that browser for 12 hours.
+  </Step>
+  <Step title="Sign in">
+    Signing in with a wallet within those 12 hours ties the account to the referrer. A user who is already signed in when they open the link is tied at once.
+  </Step>
+</Steps>
+
+A signed-in user who arrived without a link can type a code on the [referrals page](https://brdg.now/ref) instead. It asks for confirmation first, because the choice is permanent.
+
+- **Only future volume counts.** Transfers made before the user was referred never count.
+- **It is permanent.** The first referrer is kept; a later link does not replace it.
+- **No self-referral.** An account cannot be referred by its own code, two accounts cannot refer each other, and a transfer that sends from, delivers to or refunds to a wallet of the code's owner pays the full fee and earns no points.
+
+## The discount
+
+A referred user pays 10% less platform fee, in whole basis points, rounded down in the user's favour:
+
+| Platform fee | With a referral |
+| --- | --- |
+| None | None |
+| 5 bps | 4 bps |
+| 10 bps | 9 bps |
+| 15 bps | 13 bps |
+
+Only BRDG's own [platform fee](/concepts/fees) is discounted. Venue fees, gas, the Hyperliquid relayer charge and any [integrator share](/concepts/referrals) are charged in full. The \$10 cap still applies.
+
+The quote shows the fee that is charged, and what it would have been without the code:
+
+```json
+"fees": {
+  "platform": {
+    "bps": 4,
+    "amountAtomic": "40000",
+    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "tierSavedBps": 55,
+    "discount": { "code": "alice", "pct": 10, "fullBps": 5, "fullAmountAtomic": "50000" }
+  },
+  "referral": null
+}
+```
+
+`discount` is `null` when no code applied, and when there is no platform fee to discount. Every `feeBps`, `feeAmountAtomic` and `amountOutAtomic` in the quote is already discounted, and the build charges exactly the quoted fee. To show the saving, strike through `fullAmountAtomic` and show `amountAtomic` beside it.
+
+## Points and the leaderboard
+
+A referrer earns 1 point for each whole US dollar of referred transfers that reach `COMPLETED` or `PARTIAL`. Volume is summed in dollars first, then rounded down: transfers of \$250.40 and \$99.80 make 350 points. Points belong to the account, so they carry over when the code changes.
+
+[`GET /referrals/leaderboard`](/api-reference/referrals/leaderboard) ranks codes by points, then by which code was claimed first. It returns the top 25 by default and up to 100, and is refreshed about every 30 seconds. `wallets` is the number of distinct wallets referred, and `volumeUsd` the referred volume.
+
+## For integrators
+
+If your users arrive with a BRDG referral code, send it as `referralCode` on [`POST /bridge/quote`](/api-reference/quote/quote) or [`POST /fastfill/quote`](/api-reference/fastfill/quote). The build takes it from the quote, so there is no build field.
+
+Each transfer is attributed once, at quote time:
+
+1. A user signed in to BRDG who was already referred keeps their referrer. The code on the request is ignored.
+2. Otherwise the transfer is credited to the code's owner, unless `sender` belongs to that owner.
+3. A malformed or unknown code is ignored. The quote still succeeds, with the full fee.
+
+Sending a code attributes that transfer only. A user is tied to a referrer for good only by signing in on brdg.now through the link.
+
+`referralCode` is separate from `referralWallet` and `referralBps`, which pay your own share as an integrator. Send either, both or neither. See [Referrals](/concepts/referrals).
+
+To check a code before you store it, call [`GET /referrals/{code}`](/api-reference/referrals/resolve). It answers `200`, with `{ "valid": true, "code": "alice" }` or `{ "valid": false, "reason": "not_found" }` (`reason` is `invalid` or `not_found`). It allows 60 lookups a minute per IP address and answers `429` past that.
+
+## Script
+
+This script checks a code, quotes with it, and prints the discount and the leaderboard. It uses the [TypeScript project](/guides/typescript-setup); save it as `src/referrals.ts` and run `npx tsx src/referrals.ts alice`.
+
+```typescript src/referrals.ts
+import { createClient } from '@kernlog/brdg-sdk';
+
+const brdg = createClient();
+
+async function main(code: string) {
+  // 1. Check the code
+  const resolved = await brdg.resolveReferral(code);
+  if (!resolved.valid) throw new Error(`referral code ${code}: ${resolved.reason}`);
+
+  // 2. Quote with it
+  const quote = await brdg.getQuote({
+    fromChain: 'base',
+    toChain: 'solana',
+    fromToken: 'USDC',
+    toToken: 'USDC',
+    amountAtomic: '100000000',
+    sender: '0xUserWallet',
+    recipient: 'UserSolanaWallet',
+    referralCode: resolved.code,
+  });
+
+  // 3. The platform fee, with what it would have been without the code
+  const platform = quote.fees.platform;
+  if (platform?.discount) console.log(`fee ${platform.discount.fullAmountAtomic} -> ${platform.amountAtomic}`);
+
+  // 4. The top 10 referrers
+  const { rows } = await brdg.getReferralLeaderboard({ limit: 10 });
+  for (const row of rows) console.log(`${row.rank}. ${row.code}: ${row.points}`);
+}
+
+main(process.argv[2] ?? '').catch((e) => { console.error(e); process.exit(1); });
+```
+
+The SDK checks `referralCode` against the code rules before it sends anything, and throws a `BrdgError` with the code `invalid_referral_code` for a malformed one. The API itself ignores a malformed code.
+
+## Endpoints used
+
+| SDK | Endpoint |
+| --- | --- |
+| `resolveReferral` | [`GET /referrals/{code}`](/api-reference/referrals/resolve) |
+| `getQuote` | [`POST /bridge/quote`](/api-reference/quote/quote) |
+| `getFastFillQuote` | [`POST /fastfill/quote`](/api-reference/fastfill/quote) |
+| `getReferralLeaderboard` | [`GET /referrals/leaderboard`](/api-reference/referrals/leaderboard) |

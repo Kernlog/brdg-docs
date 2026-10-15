@@ -10,7 +10,8 @@ Without a key, limits are applied per IP address. Partners that call BRDG from a
 | `POST /bridge/quote` | 10 a minute |
 | `POST /bridge/build` | 10 a minute |
 | `POST /bridge/transfers/{id}/submit` | 10 a minute |
-| `GET` endpoints | Not limited |
+| `GET /referrals/{code}` | 60 a minute |
+| Other `GET` endpoints | Not limited |
 
 Each endpoint has its own count, so one transfer uses one request from each of the three limits. The `sender` on a quote is never a limit key: naming a wallet does not count against that wallet, so nobody can use up another wallet's allowance.
 
