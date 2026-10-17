@@ -16,7 +16,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-BRDG-Api-Key",
-        "description": "Optional partner key for server integrators. With it, the per-IP rate limit applies to the `userIp` in the body instead of the calling server, under a partner-wide ceiling. Unknown or disabled keys are refused with 401."
+        "description": "Optional partner key for server integrators. With it, each wallet is rate limited under the partner rather than on the IP of the calling server (a call naming no wallet, per the `userIp` in the body), bounded by a partner-wide ceiling. Unknown or disabled keys are refused with 401."
       }
     },
     "schemas": {},

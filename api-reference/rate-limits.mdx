@@ -3,17 +3,19 @@ title: Rate limits
 description: How many requests you can make, and what to send when you call the API from a server.
 ---
 
-Without a key, limits are applied per IP address. Partners that call BRDG from a server can get a key with higher limits: see [Higher rate limits and partner access](#higher-rate-limits-and-partner-access).
+Limits are counted per calling wallet: the wallet a request is for, which is the `sender` on a quote and the same wallet on its build and submit. Many wallets behind one IP address, such as an office network or a mobile carrier, each get their own allowance. Partners that call BRDG from a server can get a key with higher limits: see [Higher rate limits and partner access](#higher-rate-limits-and-partner-access).
 
-| Endpoint | Per IP address |
-| --- | --- |
-| `POST /bridge/quote` | 10 a minute |
-| `POST /bridge/build` | 10 a minute |
-| `POST /bridge/transfers/{id}/submit` | 10 a minute |
-| `GET /referrals/{code}` | 60 a minute |
-| Other `GET` endpoints | Not limited |
+| Endpoint | Per wallet | Per IP address, across all wallets |
+| --- | --- | --- |
+| `POST /bridge/quote` | 10 a minute | 120 a minute |
+| `POST /bridge/build` | 10 a minute | 120 a minute |
+| `POST /bridge/transfers/{id}/submit` | 10 a minute | 120 a minute |
+| `GET /referrals/{code}` | - | 60 a minute |
+| Other `GET` endpoints | Not limited | Not limited |
 
-Each endpoint has its own count, so one transfer uses one request from each of the three limits. The `sender` on a quote is never a limit key: naming a wallet does not count against that wallet, so nobody can use up another wallet's allowance.
+Each endpoint has its own count, so one transfer uses one request from each of the three limits.
+
+A wallet's count is kept per caller: requests naming your wallet from another IP address are counted separately, so nobody can use up your wallet's allowance by naming it. Each IP address also has a ceiling across every wallet it calls for, so an address cannot get more by cycling through new wallets. A request that names no wallet is counted per IP address, at 10 a minute.
 
 ## When you hit a limit
 
@@ -42,7 +44,7 @@ If your backend calls BRDG for your users, send each user's own IP address as `u
 
 BRDG stores `userIp` with the quote and reuses it when you build, so you only need to send it once. If your users call the API directly from their browsers, you do not need to send it.
 
-Without a key, all requests from your server share one IP address, so the per-IP limit applies to your whole server. With a partner key, it applies to each `userIp` instead.
+Without a key, each wallet your server calls for gets its own allowance, but all of them share your server's IP address, so the per-IP ceiling of 120 a minute applies to your whole server. With a partner key there is no per-IP ceiling.
 
 ## Higher rate limits and partner access
 
@@ -50,7 +52,8 @@ Higher limits are available on request: contact [@kernlog on Telegram](https://t
 
 Send the key in the `x-brdg-api-key` header on every request, and send each end user's IP as `userIp`. With a valid key:
 
-- The per-IP limit applies to the `userIp` on the request, not to your server's address. Each of your users gets the normal per-IP limit. Build and submit reuse the `userIp` from the quote when you do not send one. A request with no `userIp` is counted against your server's address, as without a key.
+- Each wallet gets the normal per-wallet limit, counted under your key, whether or not you send `userIp`. There is no per-IP ceiling.
+- A request that names no wallet is counted against the `userIp` on the request, or against your server's address when there is none. Build and submit reuse the `userIp` from the quote when you do not send one.
 - Your key also has a total limit across all your users, per endpoint group. The default is 600 quotes, 300 builds and 300 submits a minute, and it can be raised on request.
 
 ```bash
