@@ -9,16 +9,12 @@ Every BRDG account can claim a referral link. A user who signs in through it pay
 
 A link is `https://brdg.now/ref/<code>`, for example `https://brdg.now/ref/alice`. Anyone signed in to [brdg.now](https://brdg.now/ref) with a wallet can claim one code for their account, on the referrals page.
 
-A code is trimmed and lower-cased, then must match:
-
-```text
-^[a-z0-9](?:[a-z0-9-]{1,13}[a-z0-9])$
-```
+Codes are not case-sensitive and follow these rules:
 
 | Rule | |
 | --- | --- |
 | Length | 3 to 15 characters |
-| Characters | `a` to `z`, `0` to `9` and `-` |
+| Characters | Letters, numbers and hyphens (`-`), no spaces |
 | Hyphens | Not first, not last, never two in a row |
 | Reserved | Words such as `brdg`, `admin`, `support`, `fees` and `free` cannot be claimed |
 

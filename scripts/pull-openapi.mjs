@@ -30,6 +30,31 @@ const PUBLIC_PATHS = [
 ];
 for (const path of Object.keys(spec.paths)) if (!PUBLIC_PATHS.includes(path)) delete spec.paths[path];
 
+// THE PARTNER KEY IS OPTIONAL, and the API says so the OpenAPI way (`security: [{}, {partnerApiKey:
+// []}]`), but Mintlify labels every security scheme an operation names as a required authorization.
+// The key only changes how calls are rate limited, so the reference publishes it as an optional
+// header on those operations instead.
+const partnerKey = spec.components?.securitySchemes?.partnerApiKey;
+if (partnerKey) {
+  for (const item of Object.values(spec.paths))
+    for (const op of Object.values(item)) {
+      if (!op?.security?.some((requirement) => 'partnerApiKey' in requirement)) continue;
+      delete op.security;
+      op.parameters = [
+        ...(op.parameters ?? []),
+        {
+          name: partnerKey.name,
+          in: 'header',
+          required: false,
+          description: `${partnerKey.description} See [rate limits](/api-reference/rate-limits).`,
+          schema: { type: 'string' },
+        },
+      ];
+    }
+  delete spec.components.securitySchemes.partnerApiKey;
+  if (Object.keys(spec.components.securitySchemes).length === 0) delete spec.components.securitySchemes;
+}
+
 // Build fields that are always null on the public flow (the app's own HyperCore
 // signing lanes). A HyperCore deposit needs nothing beyond `steps`.
 const build = spec.paths['/bridge/build'].post.responses['200'].content['application/json'].schema;

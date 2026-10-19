@@ -11,26 +11,12 @@
     }
   ],
   "components": {
-    "securitySchemes": {
-      "partnerApiKey": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-BRDG-Api-Key",
-        "description": "Optional partner key for server integrators. With it, each wallet is rate limited under the partner rather than on the IP of the calling server (a call naming no wallet, per the `userIp` in the body), bounded by a partner-wide ceiling. Unknown or disabled keys are refused with 401."
-      }
-    },
     "schemas": {},
     "parameters": {}
   },
   "paths": {
     "/bridge/quote": {
       "post": {
-        "security": [
-          {},
-          {
-            "partnerApiKey": []
-          }
-        ],
         "summary": "Get quote",
         "description": "Prices a transfer at every venue that serves it and ranks the results by net output. `best` is the quote that `POST /bridge/build` uses by default. `bestByPrice` and `bestByTime` hold the `quoteId` of the cheapest and fastest quotes in `quotes`. Venues that could not quote are listed in `rejected` with a reason. Every `amountOutAtomic` already has the platform fee taken off.\n\nSend `sender`, and send `recipient` when the destination chain uses a different address format. If you call the API from a server on behalf of your users, send each user's IP address as `userIp`. A quote requested with `indicative: true` is for display only and cannot be built.",
         "tags": [
@@ -2016,17 +2002,22 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "X-BRDG-Api-Key",
+            "in": "header",
+            "required": false,
+            "description": "Optional partner key for server integrators. With it, each wallet is rate limited under the partner rather than on the IP of the calling server (a call naming no wallet, per the `userIp` in the body), bounded by a partner-wide ceiling. Unknown or disabled keys are refused with 401. See [rate limits](/api-reference/rate-limits).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/bridge/build": {
       "post": {
-        "security": [
-          {},
-          {
-            "partnerApiKey": []
-          }
-        ],
         "summary": "Build transaction",
         "description": "Turns a quote into the unsigned transactions the user signs. BRDG builds `best` unless you pass a `quoteId`. `steps` lists every transaction to sign, in order; the one with `step: \"main\"` is the bridge transaction. On a source chain no wallet can sign for, `steps` is empty and `deposit` says where to send the funds instead. `expectedOutAtomic` matches the `amountOutAtomic` of the quote you built. Building the same `decisionId` again returns the same transfer.",
         "tags": [
@@ -2940,17 +2931,22 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "X-BRDG-Api-Key",
+            "in": "header",
+            "required": false,
+            "description": "Optional partner key for server integrators. With it, each wallet is rate limited under the partner rather than on the IP of the calling server (a call naming no wallet, per the `userIp` in the body), bounded by a partner-wide ceiling. Unknown or disabled keys are refused with 401. See [rate limits](/api-reference/rate-limits).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/bridge/transfers/{id}/submit": {
       "post": {
-        "security": [
-          {},
-          {
-            "partnerApiKey": []
-          }
-        ],
         "summary": "Submit transaction",
         "description": "Accepts either a signed transaction for BRDG to broadcast (`signedTransaction`) or the hash of a transaction the wallet already sent (`txHash`). Send exactly one. BRDG decodes the transaction and compares it with the steps it built, and refuses anything that does not match without broadcasting it. Submitting the same transaction again returns the hash on record with `accepted: false`.",
         "tags": [
@@ -2965,6 +2961,15 @@
             "required": true,
             "name": "id",
             "in": "path"
+          },
+          {
+            "name": "X-BRDG-Api-Key",
+            "in": "header",
+            "required": false,
+            "description": "Optional partner key for server integrators. With it, each wallet is rate limited under the partner rather than on the IP of the calling server (a call naming no wallet, per the `userIp` in the body), bounded by a partner-wide ceiling. Unknown or disabled keys are refused with 401. See [rate limits](/api-reference/rate-limits).",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -3308,12 +3313,6 @@
     },
     "/fastfill/quote": {
       "post": {
-        "security": [
-          {},
-          {
-            "partnerApiKey": []
-          }
-        ],
         "summary": "Get fast fill quote",
         "description": "Prices a gasless transfer: the venue fills the destination from its own liquidity and its relayer pays the source gas, so the user signs one message and holds no gas. Only venues with a fast fill lane are asked, and the table is ranked by net output like `POST /bridge/quote`. Every `amountOutAtomic` already has the venue's gas charge and the platform fee taken off. Always a firm quote. `privacy: true` is refused with `fast_fill_not_private`. An empty table carries `emptyReason: \"no_fast_fill_route\"`.",
         "tags": [
@@ -4591,17 +4590,22 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "X-BRDG-Api-Key",
+            "in": "header",
+            "required": false,
+            "description": "Optional partner key for server integrators. With it, each wallet is rate limited under the partner rather than on the IP of the calling server (a call naming no wallet, per the `userIp` in the body), bounded by a partner-wide ceiling. Unknown or disabled keys are refused with 401. See [rate limits](/api-reference/rate-limits).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/fastfill/build": {
       "post": {
-        "security": [
-          {},
-          {
-            "partnerApiKey": []
-          }
-        ],
         "summary": "Build fast fill",
         "description": "Turns a fast fill quote into what the user signs. `steps` ends with one `vm: \"sign\"` step whose `payload` holds an EIP-712 message: sign `domain`, `types`, `primaryType` and `message` with `eth_signTypedData_v4` from the wallet in `owner`. For a token that is not USDC, `steps` can start with one `approve` to Permit2, which the wallet sends once; later fast fills of that token need only the signature. A quote from `POST /bridge/quote` is refused with `not_fast_fill`. Building the same `decisionId` again returns the same transfer.",
         "tags": [
@@ -5894,17 +5898,22 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "X-BRDG-Api-Key",
+            "in": "header",
+            "required": false,
+            "description": "Optional partner key for server integrators. With it, each wallet is rate limited under the partner rather than on the IP of the calling server (a call naming no wallet, per the `userIp` in the body), bounded by a partner-wide ceiling. Unknown or disabled keys are refused with 401. See [rate limits](/api-reference/rate-limits).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/fastfill/transfers/{id}/submit": {
       "post": {
-        "security": [
-          {},
-          {
-            "partnerApiKey": []
-          }
-        ],
         "summary": "Submit fast fill signature",
         "description": "Checks that the signature recovers to `owner` over exactly the built message, then hands it to the venue's relayer, which sends the source transaction and pays its gas. `txHash` is that transaction once the venue names it, usually within seconds. `txHash: null` with `status: \"PENDING\"` means the relayer holds the signature and has not broadcast yet; BRDG keeps tracking it, and submitting again is safe. Send the one time Permit2 `approve` through `POST /bridge/transfers/{id}/submit` with `step: \"approve\"` first.",
         "tags": [
@@ -5919,6 +5928,15 @@
             "required": true,
             "name": "id",
             "in": "path"
+          },
+          {
+            "name": "X-BRDG-Api-Key",
+            "in": "header",
+            "required": false,
+            "description": "Optional partner key for server integrators. With it, each wallet is rate limited under the partner rather than on the IP of the calling server (a call naming no wallet, per the `userIp` in the body), bounded by a partner-wide ceiling. Unknown or disabled keys are refused with 401. See [rate limits](/api-reference/rate-limits).",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
