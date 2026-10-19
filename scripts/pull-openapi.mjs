@@ -131,7 +131,7 @@ describe('/bridge/transfers/{id}', 'get', 'Get transfer',
 describe('/referrals/{code}', 'get', 'Resolve referral code',
   'Checks whether a referral code exists. The code is trimmed and lower-cased first. Answers `200`: `{ valid: true, code }` with the current code of its owner (a retired code resolves to the code its owner uses now), or `{ valid: false, reason }` where `reason` is `invalid` (not a well-formed code) or `not_found` (no account holds it). Limited to 60 lookups a minute per IP address; past that it answers `429 rate_limited` with `retryAfterMs`.');
 describe('/referrals/leaderboard', 'get', 'Get referral leaderboard',
-  'Returns referral codes ranked by points, highest first; ties go to the code claimed earliest. A referrer earns 1 point for each whole US dollar of completed transfers sent through their code. `limit` is 1 to 100 and defaults to 25. The board is refreshed about every 30 seconds; `updatedAt` says when.');
+  'Returns referral codes ranked by points, highest first; ties go to the code claimed earliest. `volumeUsd` is referral volume: each $1 of completed transfers bridged by the direct referrals of a code counts $1, by their referrals $0.10, one level further $0.01; 1 point per $1 of referral volume, floored. `limit` is 1 to 100 and defaults to 25. The board is refreshed about every 30 seconds; `updatedAt` says when.');
 
 // Field descriptions for the request bodies and the fields an integrator reads first. The API's
 // own schema carries none.
@@ -213,7 +213,7 @@ const FIELDS = {
     postStep: 'Set on Hyperliquid deposits through Arbitrum. Reports the Hyperliquid credit.',
   },
   '/referrals/leaderboard get 200': {
-    rows: 'Codes ranked by points. `volumeUsd` is the referred volume in US dollars, as a decimal string; `wallets` is the number of distinct wallets referred.',
+    rows: 'Codes ranked by points. `volumeUsd` is referral volume, in US dollars as a decimal string: each $1 bridged by your direct referrals counts $1, by their referrals $0.10, one level further $0.01. `points` is 1 per $1 of referral volume, floored. `wallets` is the number of distinct wallets referred directly.',
     updatedAt: 'Unix time in milliseconds when the board was computed.',
   },
 };

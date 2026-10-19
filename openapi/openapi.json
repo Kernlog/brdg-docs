@@ -754,7 +754,29 @@
                         "no_private_route",
                         "not_priceable",
                         "no_fast_fill_route",
+                        "below_min",
+                        "above_max",
                         null
+                      ]
+                    },
+                    "sizeLimit": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "inputAtomic": {
+                          "type": "string",
+                          "nullable": true,
+                          "pattern": "^\\d+$"
+                        },
+                        "outputAtomic": {
+                          "type": "string",
+                          "nullable": true,
+                          "pattern": "^\\d+$"
+                        }
+                      },
+                      "required": [
+                        "inputAtomic",
+                        "outputAtomic"
                       ]
                     },
                     "fastFill": {
@@ -1055,6 +1077,7 @@
                     "rejected",
                     "privacy",
                     "emptyReason",
+                    "sizeLimit",
                     "fees",
                     "expiresAt",
                     "decidedAt",
@@ -1088,7 +1111,7 @@
                         "decimals": 6,
                         "amountAtomic": "9",
                         "deductedFrom": "output",
-                        "amountUsd": 9.664307999998e-06,
+                        "amountUsd": 0.000009664307999998,
                         "label": "Swap impact"
                       },
                       {
@@ -1133,7 +1156,7 @@
                           "decimals": 6,
                           "amountAtomic": "9",
                           "deductedFrom": "output",
-                          "amountUsd": 9.664307999998e-06,
+                          "amountUsd": 0.000009664307999998,
                           "label": "Swap impact"
                         },
                         {
@@ -2993,7 +3016,7 @@
         },
         "responses": {
           "200": {
-            "description": "The transfer\u2019s new state and the hash on record",
+            "description": "The transfer’s new state and the hash on record",
             "content": {
               "application/json": {
                 "schema": {
@@ -3536,7 +3559,7 @@
                     "type": "string",
                     "minLength": 26,
                     "maxLength": 600,
-                    "description": "Wallet that receives your referral share. Must be valid on the source chain. Send together with `referralBps`. A fast fill the venue relays is gasless, so no transaction of the user\u2019s can carry the payout: the share is 0 on those rows and `fees.referral` is `null`. A fast fill the user sends pays it normally."
+                    "description": "Wallet that receives your referral share. Must be valid on the source chain. Send together with `referralBps`. A fast fill the venue relays is gasless, so no transaction of the user’s can carry the payout: the share is 0 on those rows and `fees.referral` is `null`. A fast fill the user sends pays it normally."
                   },
                   "referralBps": {
                     "type": "integer",
@@ -4001,7 +4024,29 @@
                         "no_private_route",
                         "not_priceable",
                         "no_fast_fill_route",
+                        "below_min",
+                        "above_max",
                         null
+                      ]
+                    },
+                    "sizeLimit": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "inputAtomic": {
+                          "type": "string",
+                          "nullable": true,
+                          "pattern": "^\\d+$"
+                        },
+                        "outputAtomic": {
+                          "type": "string",
+                          "nullable": true,
+                          "pattern": "^\\d+$"
+                        }
+                      },
+                      "required": [
+                        "inputAtomic",
+                        "outputAtomic"
                       ]
                     },
                     "fastFill": {
@@ -4302,6 +4347,7 @@
                     "rejected",
                     "privacy",
                     "emptyReason",
+                    "sizeLimit",
                     "fees",
                     "expiresAt",
                     "decidedAt",
@@ -5913,7 +5959,7 @@
         },
         "responses": {
           "200": {
-            "description": "The transfer\u2019s new state and the relayer\u2019s hash, when known",
+            "description": "The transfer’s new state and the relayer’s hash, when known",
             "content": {
               "application/json": {
                 "schema": {
@@ -9951,7 +9997,7 @@
     "/referrals/leaderboard": {
       "get": {
         "summary": "Get referral leaderboard",
-        "description": "Returns referral codes ranked by points, highest first; ties go to the code claimed earliest. A referrer earns 1 point for each whole US dollar of completed transfers sent through their code. `limit` is 1 to 100 and defaults to 25. The board is refreshed about every 30 seconds; `updatedAt` says when.",
+        "description": "Returns referral codes ranked by points, highest first; ties go to the code claimed earliest. `volumeUsd` is referral volume: each $1 of completed transfers bridged by the direct referrals of a code counts $1, by their referrals $0.10, one level further $0.01; 1 point per $1 of referral volume, floored. `limit` is 1 to 100 and defaults to 25. The board is refreshed about every 30 seconds; `updatedAt` says when.",
         "tags": [
           "referrals"
         ],
@@ -10006,7 +10052,7 @@
                           "volumeUsd"
                         ]
                       },
-                      "description": "Codes ranked by points. `volumeUsd` is the referred volume in US dollars, as a decimal string; `wallets` is the number of distinct wallets referred."
+                      "description": "Codes ranked by points. `volumeUsd` is referral volume, in US dollars as a decimal string: each $1 bridged by your direct referrals counts $1, by their referrals $0.10, one level further $0.01. `points` is 1 per $1 of referral volume, floored. `wallets` is the number of distinct wallets referred directly."
                     },
                     "updatedAt": {
                       "type": "integer",

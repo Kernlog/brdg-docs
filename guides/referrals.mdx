@@ -1,9 +1,9 @@
 ---
 title: Referral program
-description: Referred users save 10% on BRDG's platform fee. Referrers earn 1 point for every $1 bridged through their link.
+description: Referred users save 10% on BRDG's platform fee. Referrers earn points on their referrals' volume, three levels deep.
 ---
 
-Every BRDG account can claim a referral link. A user who signs in through it pays 10% less platform fee on every transfer from then on, and the owner of the link earns 1 point for each dollar those transfers move.
+Every BRDG account can claim a referral link. A user who signs in through it pays 10% less platform fee on every transfer from then on, and the owner of the link earns 1 point for each dollar those transfers move, plus a share of what the users they refer go on to refer.
 
 ## Referral links
 
@@ -39,7 +39,8 @@ A signed-in user who arrived without a link can type a code on the [referrals pa
 
 - **Only future volume counts.** Transfers made before the user was referred never count.
 - **It is permanent.** The first referrer is kept; a later link does not replace it.
-- **No self-referral.** An account cannot be referred by its own code, two accounts cannot refer each other, and a transfer that sends from, delivers to or refunds to a wallet of the code's owner pays the full fee and earns no points.
+- **No self-referral.** An account cannot be referred by its own code, and a transfer that sends from, delivers to or refunds to a wallet of the code's owner pays the full fee and earns no points.
+- **Links are one-way.** If you referred someone, they can never be your referrer, and a code whose owner you referred pays the full fee on your transfers. Longer loops are allowed: A can refer B, B refer C and C refer A. Nobody earns points on their own transfers, at any level.
 
 ## The discount
 
@@ -73,9 +74,24 @@ The quote shows the fee that is charged, and what it would have been without the
 
 ## Points and the leaderboard
 
-A referrer earns 1 point for each whole US dollar of referred transfers that reach `COMPLETED` or `PARTIAL`. Volume is summed in dollars first, then rounded down: transfers of \$250.40 and \$99.80 make 350 points. Points belong to the account, so they carry over when the code changes.
+Points come from referral volume: transfers that reach `COMPLETED` or `PARTIAL`, counted at three levels:
 
-[`GET /referrals/leaderboard`](/api-reference/referrals/leaderboard) ranks codes by points, then by which code was claimed first. It returns the top 25 by default and up to 100, and is refreshed about every 30 seconds. `wallets` is the number of distinct wallets referred, and `volumeUsd` the referred volume.
+| Level | Whose transfers | Each \$1 counts |
+| --- | --- | --- |
+| 1 | Users you referred | \$1 |
+| 2 | Users they referred | \$0.10 |
+| 3 | One level further | \$0.01 |
+
+You earn 1 point per whole dollar of referral volume. It is summed across the three levels first, then rounded down once: level 1 transfers of \$250.40 and \$99.80 make \$350.20 and 350 points.
+
+A refers B, B refers C, and C refers D. When D bridges \$1,000, C gets \$1,000 of referral volume and 1,000 points, B \$100 and 100, and A \$10 and 10. A level with nobody on it stays empty: the next referrer up never takes its place.
+
+- **Only volume after a link exists counts.** Each transfer's levels are fixed when it is quoted. A link made later never adds volume for earlier transfers.
+- **API volume counts the same.** A transfer quoted through the API with a code, or by a referred user, counts at every level exactly like one made on brdg.now.
+
+Points belong to the account, so they carry over when the code changes.
+
+[`GET /referrals/leaderboard`](/api-reference/referrals/leaderboard) ranks codes by points, then by which code was claimed first. It returns the top 25 by default and up to 100, and is refreshed about every 30 seconds. `volumeUsd` is the code's referral volume and `points` its whole dollars; `wallets` is the number of distinct wallets referred directly.
 
 ## For integrators
 
