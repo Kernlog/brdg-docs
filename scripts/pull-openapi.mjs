@@ -185,6 +185,8 @@ const FIELDS = {
     venue: 'Build this venue\'s quote instead of `best`.',
     privacy: 'Optional. Privacy already carries over from the quote.',
     userIp: 'Optional. `userIp` already carries over from the quote.',
+    atomicBatch:
+      'Optional, `false` when omitted. Send `true` only when the wallet will submit every returned step together as ONE atomic EIP-5792 bundle (`wallet_sendCalls` with `atomicRequired`). Then a route that can carry the fee that way returns a `fee` step beside the bridge step, listed in `feeBatch`. Otherwise the build returns no `fee` step, and the fee rides the venue\'s own transaction or is not charged. A transfer from Tron never carries a `fee` step.',
   },
   '/bridge/transfers/{id}/submit post request': {
     signedTransaction: 'The signed transaction, for BRDG to broadcast. Send this or `txHash`.',
@@ -212,6 +214,8 @@ const FIELDS = {
   '/fastfill/build post request': {
     decisionId: 'The `decisionId` from the fast fill quote response.',
     quoteId: 'Build this quote instead of `best`.',
+    atomicBatch:
+      'Optional, `false` when omitted. Send `true` only when the wallet will submit every returned step together as ONE atomic EIP-5792 bundle (`wallet_sendCalls` with `atomicRequired`). Then a route that can carry the fee that way returns a `fee` step beside the bridge step, listed in `feeBatch`. Otherwise the build returns no `fee` step, and the fee rides the venue\'s own transaction or is not charged. A transfer from Tron never carries a `fee` step.',
   },
   '/fastfill/transfers/{id}/submit post request': {
     signature: 'The wallet\'s 65 byte EIP-712 signature over the build\'s message, as 0x hex.',

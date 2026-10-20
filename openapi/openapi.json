@@ -2064,6 +2064,10 @@
                       }
                     ],
                     "description": "Optional. `userIp` already carries over from the quote."
+                  },
+                  "atomicBatch": {
+                    "type": "boolean",
+                    "description": "Optional, `false` when omitted. Send `true` only when the wallet will submit every returned step together as ONE atomic EIP-5792 bundle (`wallet_sendCalls` with `atomicRequired`). Then a route that can carry the fee that way returns a `fee` step beside the bridge step, listed in `feeBatch`. Otherwise the build returns no `fee` step, and the fee rides the venue's own transaction or is not charged. A transfer from Tron never carries a `fee` step."
                   }
                 },
                 "required": [
@@ -4645,6 +4649,10 @@
                         "format": "ip"
                       }
                     ]
+                  },
+                  "atomicBatch": {
+                    "type": "boolean",
+                    "description": "Optional, `false` when omitted. Send `true` only when the wallet will submit every returned step together as ONE atomic EIP-5792 bundle (`wallet_sendCalls` with `atomicRequired`). Then a route that can carry the fee that way returns a `fee` step beside the bridge step, listed in `feeBatch`. Otherwise the build returns no `fee` step, and the fee rides the venue's own transaction or is not charged. A transfer from Tron never carries a `fee` step."
                   }
                 },
                 "required": [

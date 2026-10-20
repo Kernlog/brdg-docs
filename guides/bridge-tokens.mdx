@@ -34,7 +34,7 @@ async function main() {
   // 2. Build the best quote
   const build = await brdg.buildTransfer({ decisionId: quote.decisionId });
 
-  // 3. Sign every step in order. `main` is the bridge transaction; any others are an approval or the fee.
+  // 3. Sign every step in order. `main` is the bridge transaction; any other step is an approval.
   let mainHash: Hex | undefined;
   for (const step of build.steps) {
     const hash = await signEvmStep(step);

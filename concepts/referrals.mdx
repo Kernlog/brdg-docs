@@ -57,7 +57,7 @@ The quote shows your share next to the platform fee, in the same token, before a
 
 ## How you are paid
 
-Your share is paid to your wallet in the same transaction the user signs for the bridge. On Solana it is an extra instruction in that transaction, and on EVM and Tron it is part of the `fee` step next to the bridge step. Nothing is held back and paid out later.
+Your share is paid to your wallet inside the transaction the user signs for the bridge, never as a transaction of its own. On Solana it is an extra instruction in that transaction. On EVM it is a `fee` step in the one atomic bundle, when the build request sends `atomicBatch: true`. Where neither can carry it (a transfer from Tron, or an EVM build without `atomicBatch`), your share is not charged, and the build's `referralCapture` is `none`. Nothing is held back and paid out later.
 
 ## Fast fill
 
@@ -73,10 +73,10 @@ Each fee appears in the `fees` list of `GET /bridge/transfers/{id}`, with a `kin
 
 | `status` | Meaning |
 | --- | --- |
-| `offered` | A `fee` step was built but not signed yet. |
+| `offered` | A `fee` step was built into an atomic bundle that has not been submitted yet. |
 | `expected` | The fee is inside a transaction the user signed. |
 | `settled` | The transfer completed. `txHash` is the transaction that paid you. |
-| `void` | No fee was collected: the transfer was refunded or failed, or the user never signed the `fee` step. |
+| `void` | No fee was collected: the transfer was refunded or failed, or the bundle carrying the `fee` step was never submitted. |
 
 ## Your users' referral codes
 

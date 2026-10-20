@@ -47,14 +47,16 @@ The fee is disclosed in the quote before anything is signed:
 
 ## How the fee is collected
 
-The fee comes out of the transfer itself. Your user never pays it in a second token. The `feeCapture` field on the build response tells you how:
+The fee comes out of the transfer itself, inside the one transaction or signed message your user already gives. Your user never pays it in a second token, and never signs a second transaction to pay it. The `feeCapture` field on the build response tells you how:
 
 | `feeCapture` | How it works | Signatures |
 | --- | --- | --- |
-| `venue-param` | The venue takes the fee as part of its own transaction. Some venues take it from the output rather than the input. | 1 |
+| `venue-param` | The venue takes the fee inside its own transaction: paid straight to BRDG (LI.FI, Across, deBridge), or credited to BRDG's balance at the venue (Relay, Near Intents). Some venues take it from the output rather than the input. | 1 |
 | `merged` | The fee transfer is an extra instruction inside the Solana transaction. | 1 |
-| `batch` | A separate `fee` step comes before the bridge step. `feeBatch` lists the steps a wallet with EIP-5792 batching can sign as one bundle. | 1, or 2 without batching |
+| `batch` | Only when the build request sends `atomicBatch: true`. A `fee` step sits beside the bridge step, and `feeBatch` lists the steps your wallet must submit together as one atomic EIP-5792 bundle. | 1 |
 | `none` | No fee is collected on this transfer. | Not applicable |
+
+Send `atomicBatch: true` on `POST /bridge/build` (or `POST /fastfill/build`) only when the wallet will submit every returned step in one atomic bundle. Leave it out otherwise: the build then carries no `fee` step at all, and the fee rides the venue's own transaction or is not charged. A transfer from Tron never carries a `fee` step.
 
 If a Solana transaction has no room for the extra instruction, BRDG drops the fee rather than the transfer, and `feeCapture` is `none`.
 
